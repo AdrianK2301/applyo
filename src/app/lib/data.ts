@@ -1,6 +1,6 @@
 // src/app/lib/data.ts
 
-export type Status = 'Merkliste' | 'In Vorbereitung' | 'Beworben' | 'Interview' | 'Angebot' | 'Absage';
+export type Status = 'Merkliste' | 'In Vorbereitung' | 'Beworben' | 'Interview' | 'Angebot' | 'Absage' | 'Archiv';
 
 export interface Job {
   id: string;

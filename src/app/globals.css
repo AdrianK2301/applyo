@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+/* WICHTIG für Tailwind v4:
+   Diese Zeile zwingt Tailwind dazu, auf die Klasse "dark" zu hören,
+   statt auf die Systemeinstellungen des Laptops.
+*/
+@variant dark (&:where(.dark, .dark *));
+
+/* Optional: Damit der Hintergrund weich überblendet */
+body {
+  @apply transition-colors duration-300;
+}
