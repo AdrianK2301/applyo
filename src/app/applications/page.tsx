@@ -427,7 +427,7 @@ export default function ApplicationsPage() {
                             <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Anforderungen</label>
                             <ul className="space-y-2">
                               {(isEditing ? (editFormData?.requirements || []) : (selectedJob.requirements || [])).map((req, i) => (
-                                <li key={i} className="flex items-start gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5 text-xs text-gray-700 dark:text-gray-300">
+                                <li key={i} className="flex items-start gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5 text-xs text-gray-700 dark:text-gray-200">
                                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
                                   <span>{req}</span>
                                 </li>
