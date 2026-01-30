@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation';
 import { createClient } from '@/app/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 import UserDropdown from './components/UserDropdown';
+import ThemeToggle from './components/ThemeToggle';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const lora = Lora({ subsets: ['latin'], variable: '--font-lora' });
@@ -80,6 +81,7 @@ export default function RootLayout({
                   </div>
 
                   <div className="flex items-center gap-4">
+                    <ThemeToggle />
                     <UserDropdown user={user} />
                   </div>
                 </header>
