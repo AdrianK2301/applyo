@@ -1,6 +1,7 @@
 // src/app/lib/data.ts
 
 export type Status = 'Merkliste' | 'In Vorbereitung' | 'Beworben' | 'Interview' | 'Angebot' | 'Absage' | 'Archiv';
+export type Priority = 'High' | 'Medium' | 'Low';
 
 export interface Job {
   id: string;
@@ -11,7 +12,18 @@ export interface Job {
   priority: 'High' | 'Medium' | 'Low';
   lastUpdate: string;
   nextStep?: string;
-  date?: string; // NEU: Datum für Kalender-Events (z.B. Interviewtermin)
+  date?: string; // Datum für Kalender-Events (z.B. Interviewtermin)
+  notes?: string;
+  prepTasks?: { text: string; completed: boolean }[];
+  contactPerson?: string;
+}
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  isDefault?: boolean;
 }
 
 export const jobs: Job[] = [

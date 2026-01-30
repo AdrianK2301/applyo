@@ -3,14 +3,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, Link as LinkIcon, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Link as LinkIcon, CheckCircle2, Loader2, Building2, MapPin, Target } from 'lucide-react';
 import Link from 'next/link';
-import { useJobs } from '@/app/hooks/useJobs'; // Hook importieren
+import { useJobs } from '@/app/hooks/useJobs';
+import { motion, AnimatePresence } from 'framer-motion';
+import { clsx } from 'clsx';
+import { Lora } from 'next/font/google';
+
+const lora = Lora({ subsets: ['latin'] });
 
 export default function AddJobPage() {
   const router = useRouter();
-  const { addJob } = useJobs(); // Hook nutzen
-  
+  const { addJob } = useJobs();
+
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [url, setUrl] = useState('');
@@ -19,131 +24,190 @@ export default function AddJobPage() {
     title: '',
     company: '',
     location: '',
-    status: 'Merkliste',
-    priority: 'Medium',
+    status: 'Merkliste' as const,
+    priority: 'Medium' as const,
     url: ''
   });
 
   const handleAnalyze = () => {
     if (!url) return;
     setIsLoading(true);
-    // Simulierter Import
     setTimeout(() => {
       setIsLoading(false);
       setStep(2);
       setFormData({
         ...formData,
         url: url,
-        title: 'Senior Frontend Engineer', 
-        company: 'Spotify AB',            
-        location: 'Berlin (Hybrid)',      
+        title: 'Senior Frontend Engineer',
+        company: 'Spotify AB',
+        location: 'Berlin (Hybrid)',
       });
     }, 1500);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Neues Job-Objekt erstellen
     const newJob: any = {
-        id: Date.now().toString(), // Simple ID Generierung
-        ...formData,
-        lastUpdate: new Date().toISOString().split('T')[0],
+      id: Date.now().toString(),
+      ...formData,
+      lastUpdate: new Date().toISOString().split('T')[0],
     };
-
-    // Speichern über den Hook
     addJob(newJob);
-
-    // Weiterleitung
     router.push('/applications');
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <div className="mb-8 flex items-center gap-4">
-        <Link href="/applications" className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
-          <ArrowLeft size={20} />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-3xl mx-auto py-12 px-6"
+    >
+      <div className="mb-12 flex items-center gap-6">
+        <Link href="/applications" className="p-4 glass-card rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95 shadow-lg border border-white/10 text-gray-400">
+          <ArrowLeft size={24} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Neuen Job hinzufügen</h1>
-          <p className="text-gray-500">Importiere Daten automatisch oder trage sie manuell ein.</p>
+          <h1 className={`${lora.className} text-4xl font-bold text-gray-900 dark:text-white tracking-tight `}>Job hinzufügen</h1>
+          <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-2">Automatisch importieren oder manuell erfassen</p>
         </div>
       </div>
 
-      {step === 1 && (
-        <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm text-center space-y-6">
-          <div className="h-16 w-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles size={32} />
-          </div>
-          <h2 className="text-lg font-semibold">Magic Import</h2>
-          <p className="text-gray-500 max-w-md mx-auto">Link zur Stellenanzeige einfügen. Wir füllen die Details automatisch aus.</p>
+      <AnimatePresence mode="wait">
+        {step === 1 ? (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="glass-card p-12 rounded-[3rem] border border-white/10 shadow-2xl text-center space-y-10 relative overflow-hidden group bg-white/5"
+          >
 
-          <div className="flex gap-2 max-w-lg mx-auto">
-            <div className="relative flex-1">
-              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="https://..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-              />
-            </div>
-            <button 
-              onClick={handleAnalyze}
-              disabled={isLoading || !url}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              {isLoading ? <Loader2 className="animate-spin" /> : 'Analysieren'}
-            </button>
-          </div>
-          <div className="pt-6 border-t border-gray-100">
-            <button onClick={() => setStep(2)} className="text-sm text-gray-500 hover:text-gray-900 underline">Überspringen & manuell eingeben</button>
-          </div>
-        </div>
-      )}
 
-      {step === 2 && (
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {url && <div className="bg-green-50 text-green-700 p-3 rounded-lg flex items-center gap-2 text-sm mb-4"><CheckCircle2 size={16} /> Daten erfolgreich extrahiert!</div>}
+            <div className="h-20 w-20 bg-blue-600/10 text-blue-500 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-500/10 group-hover:scale-110 transition-transform duration-500">
+              <Sparkles size={40} />
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Jobtitel</label>
-              <input required type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+            <div className="space-y-4 relative z-10">
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Magischer Import</h2>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 max-w-sm mx-auto">Füge den Link zur Stellenanzeige ein. Unsere KI extrahiert alle relevanten Details automatisch für dich.</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Firma</label>
-              <input required type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2" value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Standort</label>
-              <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
-                <option>Merkliste</option>
-                <option>In Vorbereitung</option>
-                <option>Beworben</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priorität</label>
-              <select className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white" value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value as any})}>
-                <option value="High">Hoch 🔥</option>
-                <option value="Medium">Mittel</option>
-                <option value="Low">Niedrig</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="pt-4 flex gap-3">
-            <button type="submit" className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700">Job speichern</button>
-            <button type="button" onClick={() => router.back()} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Abbrechen</button>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto relative z-10">
+              <div className="relative flex-1">
+                <LinkIcon className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="https://linkedin.com/jobs/..."
+                  className="w-full h-16 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl pl-14 pr-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-gray-600"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                />
+              </div>
+              <button
+                onClick={handleAnalyze}
+                disabled={isLoading || !url}
+                className="h-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-10 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <><Sparkles size={18} /> Analysieren</>}
+              </button>
+            </div>
+
+            <div className="pt-10 border-t border-white/5 relative z-10">
+              <button onClick={() => setStep(2)} className="text-[10px] font-black text-gray-500 hover:text-white uppercase tracking-widest underline decoration-2 underline-offset-8 decoration-white/10 hover:decoration-blue-500 transition-all">Überspringen & manuell erfassen</button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.form
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            onSubmit={handleSubmit}
+            className="glass-card p-12 rounded-[3.5rem] border border-white/10 shadow-2xl space-y-12 bg-white/5"
+          >
+            {url && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-green-500/10 text-green-500 p-5 rounded-2xl flex items-center gap-4 text-xs font-black uppercase tracking-widest border border-green-500/20"
+              >
+                <CheckCircle2 size={24} />
+                Daten erfolgreich extrahiert!
+              </motion.div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="col-span-2">
+                <Input label="Position / Jobtitel" value={formData.title} onChange={(v: string) => setFormData({ ...formData, title: v })} placeholder="z.B. Senior Frontend Engineer" icon={Target} required />
+              </div>
+              <Input label="Unternehmen / Firma" value={formData.company} onChange={(v: string) => setFormData({ ...formData, company: v })} placeholder="z.B. Innovate Tech GmbH" icon={Building2} required />
+              <Input label="Standort / Ort" value={formData.location} onChange={(v: string) => setFormData({ ...formData, location: v })} placeholder="z.B. Berlin (Hybrid)" icon={MapPin} />
+
+              <div className="space-y-3">
+                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Status</label>
+                <select
+                  className="w-full h-16 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl px-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all"
+                  value={formData.status}
+                  onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+                >
+                  <option className="bg-slate-900">Merkliste</option>
+                  <option className="bg-slate-900">In Vorbereitung</option>
+                  <option className="bg-slate-900">Beworben</option>
+                  <option className="bg-slate-900">Interview</option>
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Priorität</label>
+                <select
+                  className="w-full h-16 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl px-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all"
+                  value={formData.priority}
+                  onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
+                >
+                  <option value="High" className="bg-slate-900">Hoch 🔥</option>
+                  <option value="Medium" className="bg-slate-900">Mittel</option>
+                  <option value="Low" className="bg-slate-900">Niedrig</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-10 border-t border-white/5 flex flex-col sm:flex-row gap-6">
+              <button type="submit" className="flex-1 h-18 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all">
+                Job speichern
+              </button>
+              <button type="button" onClick={() => router.back()} className="h-18 px-10 glass text-gray-400 hover:text-white hover:bg-white/10 border border-white/10 rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] transition-all">
+                Abbrechen
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function Input({ label, value, onChange, placeholder, icon: Icon, required }: any) {
+  return (
+    <div className="space-y-3">
+      <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">{label}</label>
+      <div className="relative group/input">
+        {Icon && (
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/input:text-blue-500 transition-colors">
+            <Icon size={20} />
           </div>
-        </form>
-      )}
+        )}
+        <input
+          required={required}
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={clsx(
+            "w-full h-16 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl pr-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-gray-600",
+            Icon ? "pl-14" : "pl-6"
+          )}
+        />
+      </div>
     </div>
   );
 }

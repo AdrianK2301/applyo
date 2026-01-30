@@ -1,19 +1,23 @@
 // src/app/components/Sidebar.tsx
 'use client';
 
+import React from 'react';
+import {
+  BarChart3,
+  Briefcase,
+  Calendar,
+  Settings,
+  LogOut,
+  X,
+  Plus
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Briefcase, Calendar, Settings, PlusCircle, X, Moon, Sun } from 'lucide-react'; // Icons importieren
 import { clsx } from 'clsx';
-import { useTheme } from 'next-themes'; // Hook importieren
-import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Lora } from 'next/font/google';
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Meine Bewerbungen', href: '/applications', icon: Briefcase },
-  { name: 'Kalender', href: '/calendar', icon: Calendar },
-  { name: 'Einstellungen', href: '/settings', icon: Settings },
-];
+const lora = Lora({ subsets: ['latin'] });
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,87 +26,76 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  // NEU: Wir holen uns zusätzlich 'resolvedTheme'
-  const { theme, setTheme, resolvedTheme } = useTheme(); 
-  const [mounted, setMounted] = useState(false);
 
-  // Verhindert Hydration Mismatch
-  useEffect(() => setMounted(true), []);
+  const menuItems = [
+    { icon: BarChart3, label: 'Dashboard', href: '/' },
+    { icon: Briefcase, label: 'Bewerbungen', href: '/applications' },
+    { icon: Calendar, label: 'Kalender', href: '/calendar' },
+    { icon: Settings, label: 'Einstellungen', href: '/settings' },
+  ];
 
   return (
     <>
-      <div 
+      <div
         className={clsx(
-          "fixed inset-0 bg-gray-900/50 z-40 lg:hidden transition-opacity",
+          "fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-40 transition-opacity lg:hidden",
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
       />
 
-      {/* Sidebar Container: Helle und Dunkle Farben definiert */}
-      <div className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col h-full transition-all duration-300 ease-in-out lg:translate-x-0 lg:static",
+      <aside className={clsx(
+        "fixed lg:static inset-y-0 left-0 w-72 h-full glass transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-50 lg:translate-x-0 border-r border-white/10 flex flex-col pt-8 pb-12",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-slate-800 shrink-0">
-          <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">applyo.</h1>
-          <button onClick={onClose} className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        <div className="flex items-center justify-between px-8 mb-16">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <span className={`text-white font-bold text-xl italic tracking-tighter ${lora.className}`}>a</span>
+            </div>
+            <h1 className={`text-2xl font-bold text-gray-900 dark:text-white tracking-tighter ${lora.className}`}>applyo</h1>
+          </div>
+          <button onClick={onClose} className="lg:hidden p-2 text-gray-500 hover:bg-white/10 rounded-xl">
             <X size={24} />
           </button>
         </div>
-        
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {navigation.map((item) => {
+
+        <nav className="flex-1 px-4 space-y-2">
+          {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
-                key={item.name}
+                key={item.href}
                 href={item.href}
-                onClick={onClose}
-                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                onClick={() => onClose()}
+                className={clsx(
+                  "relative flex items-center gap-4 px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden group",
                   isActive
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                    : 'text-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
-                }`}
+                    ? "text-white shadow-xl shadow-blue-500/20"
+                    : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                )}
               >
-                <item.icon
-                  className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                    isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-300'
-                  }`}
-                />
-                {item.name}
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebar-active"
+                    className="absolute inset-0 bg-blue-600 -z-10"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <item.icon size={18} className={clsx(isActive ? "text-white" : "text-gray-400 group-hover:text-blue-500 transition-colors")} />
+                {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-200 dark:border-slate-800 shrink-0 space-y-4">
-           {/* Der Dark Mode Switch */}
-           <button
-             // NEU: Wir prüfen 'resolvedTheme' statt 'theme'
-             // Das sorgt dafür, dass der Wechsel auch funktioniert, wenn man vorher auf "System" stand
-             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-             className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-slate-800 rounded-md hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-           >
-             <span className="flex items-center gap-2">
-               {/* Icon Anzeige Logik */}
-               {mounted && resolvedTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
-               <span>
-                   {mounted && resolvedTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-               </span>
-             </span>
-           </button>
-
-           <Link 
-             href="/add" 
-             onClick={onClose}
-             className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-           >
-              <PlusCircle size={18} />
-              <span>Job hinzufügen</span>
-           </Link>
+        <div className="px-6 mt-auto">
+          <Link href="/add" onClick={() => onClose()} className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-800 text-white p-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all">
+            <Plus size={16} />
+            Hinzufügen
+          </Link>
         </div>
-      </div>
+      </aside>
     </>
   );
 }
