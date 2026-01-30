@@ -20,6 +20,7 @@ export interface Job {
   requirements?: string[];
   benefits?: string[];
   skills?: string[];
+  contactPerson?: string;
 }
 
 export interface EmailTemplate {

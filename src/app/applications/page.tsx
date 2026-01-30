@@ -422,11 +422,11 @@ export default function ApplicationsPage() {
                         </div>
 
                         {/* Requirements */}
-                        {(selectedJob.requirements?.length > 0 || isEditing) && (
+                        {((selectedJob.requirements?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Anforderungen</label>
                             <ul className="space-y-2">
-                              {(isEditing ? (editFormData.requirements || []) : selectedJob.requirements).map((req, i) => (
+                              {(isEditing ? (editFormData?.requirements || []) : (selectedJob.requirements || [])).map((req, i) => (
                                 <li key={i} className="flex items-start gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5 text-xs text-gray-700 dark:text-gray-300">
                                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
                                   <span>{req}</span>
@@ -437,11 +437,11 @@ export default function ApplicationsPage() {
                         )}
 
                         {/* Benefits */}
-                        {(selectedJob.benefits?.length > 0 || isEditing) && (
+                        {((selectedJob.benefits?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Benefits</label>
                             <div className="grid grid-cols-2 gap-3">
-                              {(isEditing ? (editFormData.benefits || []) : selectedJob.benefits).map((ben, i) => (
+                              {(isEditing ? (editFormData?.benefits || []) : (selectedJob.benefits || [])).map((ben, i) => (
                                 <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/10 text-xs font-bold">
                                   <CheckCircle2 size={14} className="shrink-0" />
                                   <span className="truncate">{ben}</span>
@@ -452,11 +452,11 @@ export default function ApplicationsPage() {
                         )}
 
                         {/* Skills */}
-                        {(selectedJob.skills?.length > 0 || isEditing) && (
+                        {((selectedJob.skills?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Skills & Tech Stack</label>
                             <div className="flex flex-wrap gap-2">
-                              {(isEditing ? (editFormData.skills || []) : selectedJob.skills).map((skill, i) => (
+                              {(isEditing ? (editFormData?.skills || []) : (selectedJob.skills || [])).map((skill, i) => (
                                 <span key={i} className="px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-wider border border-blue-600/10">
                                   {skill}
                                 </span>
