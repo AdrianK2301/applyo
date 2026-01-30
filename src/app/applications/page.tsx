@@ -326,7 +326,7 @@ export default function ApplicationsPage() {
                     activeTab === 'prep' ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-                  Vorbereitung
+                  In Vorbereitung
                 </button>
               </div>
 
@@ -402,20 +402,85 @@ export default function ApplicationsPage() {
                         />
                       </div>
 
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Über diesen Job</label>
-                        <div className="glass-card p-6 rounded-[2rem] border-gray-200 dark:border-white/5 bg-black/5 dark:bg-white/5">
-                          {isEditing ? (
-                            <textarea
-                              value={editFormData.notes || ''}
-                              onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
-                              rows={4}
-                              className="w-full bg-transparent text-sm text-gray-700 dark:text-gray-400 leading-relaxed outline-none resize-none"
-                              placeholder="Füge Notizen hinzu..."
-                            />
-                          ) : (
-                            <p className="text-sm text-gray-700 dark:text-gray-400 leading-relaxed italic">{selectedJob.notes || '&quot;Keine Beschreibung verfügbar. Du kannst Details in den Einstellungen hinzufügen.&quot;'}</p>
-                          )}
+                      <div className="space-y-8">
+                        {/* Summary */}
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Zusammenfassung</label>
+                          <div className="glass-card p-6 rounded-[2rem] border-gray-200 dark:border-white/5 bg-black/5 dark:bg-white/5">
+                            {isEditing ? (
+                              <textarea
+                                value={editFormData.summary || ''}
+                                onChange={(e) => setEditFormData({ ...editFormData, summary: e.target.value })}
+                                rows={4}
+                                className="w-full bg-transparent text-sm text-gray-700 dark:text-gray-300 leading-relaxed outline-none resize-none"
+                                placeholder="Kurze Zusammenfassung..."
+                              />
+                            ) : (
+                              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{selectedJob.summary || selectedJob.description || 'Keine Zusammenfassung verfügbar.'}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Requirements */}
+                        {(selectedJob.requirements?.length > 0 || isEditing) && (
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Anforderungen</label>
+                            <ul className="space-y-2">
+                              {(isEditing ? (editFormData.requirements || []) : selectedJob.requirements).map((req, i) => (
+                                <li key={i} className="flex items-start gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5 text-xs text-gray-700 dark:text-gray-300">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                                  <span>{req}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Benefits */}
+                        {(selectedJob.benefits?.length > 0 || isEditing) && (
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Benefits</label>
+                            <div className="grid grid-cols-2 gap-3">
+                              {(isEditing ? (editFormData.benefits || []) : selectedJob.benefits).map((ben, i) => (
+                                <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/10 text-xs font-bold">
+                                  <CheckCircle2 size={14} className="shrink-0" />
+                                  <span className="truncate">{ben}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Skills */}
+                        {(selectedJob.skills?.length > 0 || isEditing) && (
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Skills & Tech Stack</label>
+                            <div className="flex flex-wrap gap-2">
+                              {(isEditing ? (editFormData.skills || []) : selectedJob.skills).map((skill, i) => (
+                                <span key={i} className="px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-wider border border-blue-600/10">
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Notes */}
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Meine Notizen</label>
+                          <div className="glass-card p-6 rounded-[2rem] border-gray-200 dark:border-white/5 bg-amber-500/5 border-amber-500/10">
+                            {isEditing ? (
+                              <textarea
+                                value={editFormData.notes || ''}
+                                onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                                rows={4}
+                                className="w-full bg-transparent text-sm text-gray-700 dark:text-gray-300 leading-relaxed outline-none resize-none placeholder:text-gray-500"
+                                placeholder="Eigene Notizen hinzufügen..."
+                              />
+                            ) : (
+                              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">{selectedJob.notes || 'Keine eigenen Notizen.'}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -456,7 +521,7 @@ export default function ApplicationsPage() {
                         <div className="absolute top-0 right-0 p-10 text-blue-500/10 group-hover:text-blue-500/20 transition-all">
                           <MessageSquare size={120} />
                         </div>
-                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight relative z-10">Vorbereitungs-Checklist</h4>
+                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight relative z-10">In Vorbereitungs-Checklist</h4>
                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mb-8 relative z-10">Bereite dich optimal vor</p>
 
                         <div className="space-y-4 relative z-10">

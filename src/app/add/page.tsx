@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Sparkles, Link as LinkIcon, CheckCircle2, Loader2, Building2, MapPin, Target } from 'lucide-react';
 import Link from 'next/link';
 import { useJobs } from '@/app/hooks/useJobs';
+import { analyzeJob } from '@/app/actions/analyze-job';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import { Lora } from 'next/font/google';
@@ -19,30 +20,48 @@ export default function AddJobPage() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [url, setUrl] = useState('');
+  const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
     company: '',
     location: '',
+    description: '',
     status: 'Merkliste' as const,
     priority: 'Medium' as const,
     url: ''
   });
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!url) return;
     setIsLoading(true);
-    setTimeout(() => {
+    setError('');
+
+    try {
+      const result = await analyzeJob(url);
+
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
+      if (result?.data) {
+        setFormData({
+          ...formData,
+          url: url,
+          title: result.data.title || '',
+          company: result.data.company || '',
+          location: result.data.location || '',
+          description: result.data.description || '',
+        });
+        setStep(2);
+      }
+    } catch (err) {
+      setError('Ein unerwarteter Fehler ist aufgetreten.');
+      console.error(err);
+    } finally {
       setIsLoading(false);
-      setStep(2);
-      setFormData({
-        ...formData,
-        url: url,
-        title: 'Senior Frontend Engineer',
-        company: 'Spotify AB',
-        location: 'Berlin (Hybrid)',
-      });
-    }, 1500);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -112,6 +131,16 @@ export default function AddJobPage() {
               </button>
             </div>
 
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-500 text-sm font-bold bg-red-500/10 p-4 rounded-xl max-w-lg mx-auto relative z-10 border border-red-500/20"
+              >
+                {error}
+              </motion.div>
+            )}
+
             <div className="pt-10 border-t border-white/5 relative z-10">
               <button onClick={() => setStep(2)} className="text-[10px] font-black text-gray-500 hover:text-white uppercase tracking-widest underline decoration-2 underline-offset-8 decoration-white/10 hover:decoration-blue-500 transition-all">Überspringen & manuell erfassen</button>
             </div>
@@ -143,6 +172,16 @@ export default function AddJobPage() {
               <Input label="Unternehmen / Firma" value={formData.company} onChange={(v: string) => setFormData({ ...formData, company: v })} placeholder="z.B. Innovate Tech GmbH" icon={Building2} required />
               <Input label="Standort / Ort" value={formData.location} onChange={(v: string) => setFormData({ ...formData, location: v })} placeholder="z.B. Berlin (Hybrid)" icon={MapPin} />
 
+              <div className="col-span-2 space-y-3">
+                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Beschreibung / Notizen</label>
+                <textarea
+                  className="w-full h-32 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl p-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-gray-600 resize-none"
+                  placeholder="Kurze Beschreibung oder wichtige Notizen..."
+                  value={formData.description}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
+
               <div className="space-y-3">
                 <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Status</label>
                 <select
@@ -151,7 +190,7 @@ export default function AddJobPage() {
                   onChange={e => setFormData({ ...formData, status: e.target.value as any })}
                 >
                   <option className="bg-slate-900">Merkliste</option>
-                  <option className="bg-slate-900">In Vorbereitung</option>
+                  <option className="bg-slate-900">Vorbereitung</option>
                   <option className="bg-slate-900">Beworben</option>
                   <option className="bg-slate-900">Interview</option>
                 </select>

@@ -15,7 +15,11 @@ export interface Job {
   date?: string; // Datum für Kalender-Events (z.B. Interviewtermin)
   notes?: string;
   prepTasks?: { text: string; completed: boolean }[];
-  contactPerson?: string;
+  description?: string;
+  summary?: string;
+  requirements?: string[];
+  benefits?: string[];
+  skills?: string[];
 }
 
 export interface EmailTemplate {
