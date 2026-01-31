@@ -86,7 +86,9 @@ export default function AddJobPage() {
           <ArrowLeft size={24} />
         </Link>
         <div>
-          <h1 className={`${lora.className} text-4xl font-bold text-gray-900 dark:text-white tracking-tight `}>Job hinzufügen</h1>
+          <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">
+            Job hinzufügen
+          </h1>
           <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-2">Automatisch importieren oder manuell erfassen</p>
         </div>
       </div>

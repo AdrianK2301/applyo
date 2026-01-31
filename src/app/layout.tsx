@@ -70,7 +70,7 @@ export default function RootLayout({
                     >
                       <Menu size={24} />
                     </button>
-                    <h2 className={`${lora.className} text-xl font-bold text-gray-900 dark:text-white tracking-tight italic`}>
+                    <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
                       {pathname === '/' ? 'Dashboard' :
                         pathname === '/applications' ? 'Bewerbungen' :
                           pathname === '/calendar' ? 'Kalender' :

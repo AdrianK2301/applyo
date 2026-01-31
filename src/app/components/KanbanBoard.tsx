@@ -41,7 +41,7 @@ interface KanbanBoardProps {
 }
 
 const COLUMNS: { id: string; title: string; statuses: Status[] }[] = [
-    { id: 'draft', title: 'Entwurf', statuses: ['Merkliste', 'In Vorbereitung'] },
+    { id: 'draft', title: 'Entwurf', statuses: ['Merkliste', 'In Arbeit'] },
     { id: 'applied', title: 'Beworben', statuses: ['Beworben'] },
     { id: 'interview', title: 'Interview', statuses: ['Interview'] },
     { id: 'closed', title: 'Erledigt', statuses: ['Angebot', 'Absage'] },

@@ -107,7 +107,7 @@ export default function ApplicationsPage() {
 
   const statusStyles: Record<Status, string> = {
     'Merkliste': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-    'In Vorbereitung': 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    'In Arbeit': 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
     'Beworben': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
     'Interview': 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
     'Angebot': 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
@@ -121,7 +121,7 @@ export default function ApplicationsPage() {
     'Low': 'text-blue-500'
   };
 
-  const statuses: Status[] = ['Merkliste', 'In Vorbereitung', 'Beworben', 'Interview', 'Angebot', 'Absage'];
+  const statuses: Status[] = ['Merkliste', 'In Arbeit', 'Beworben', 'Interview', 'Angebot', 'Absage'];
   const priorities: Priority[] = ['High', 'Medium', 'Low'];
 
   return (
@@ -326,7 +326,7 @@ export default function ApplicationsPage() {
                     activeTab === 'prep' ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-                  In Vorbereitung
+                  In Arbeit
                 </button>
               </div>
 
@@ -521,7 +521,7 @@ export default function ApplicationsPage() {
                         <div className="absolute top-0 right-0 p-10 text-blue-500/10 group-hover:text-blue-500/20 transition-all">
                           <MessageSquare size={120} />
                         </div>
-                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight relative z-10">In Vorbereitungs-Checklist</h4>
+                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight relative z-10">In Arbeit-Checklist</h4>
                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mb-8 relative z-10">Bereite dich optimal vor</p>
 
                         <div className="space-y-4 relative z-10">
