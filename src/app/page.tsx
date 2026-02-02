@@ -53,6 +53,9 @@ export default function Dashboard() {
 
   const upcomingInterviews = jobs.filter(j => j.status === 'Interview').sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime()).slice(0, 3);
 
+  const hasApplicationsThisWeek = activeJobs > 0;
+  const nextInterviewTomorrow = interviews > 0; // optional später datumsgesteuert
+  const hasUrgentFollowups = followups > 0;
   return (
     <motion.div
       variants={containerVariants}
@@ -66,26 +69,32 @@ export default function Dashboard() {
           icon={Briefcase}
           label="Aktive Bewerbungen"
           value={activeJobs}
-          color="blue"
-          trend="+2 diese Woche"
+          color={hasApplicationsThisWeek ? 'green' : 'gray'}
+          trend="+ diese Woche"
+          trendColor={hasApplicationsThisWeek ? 'green' : 'gray'}
           href="/applications"
         />
+
         <StatCard
           icon={Calendar}
           label="Anstehende Termine"
           value={interviews}
-          color="purple"
+          color={nextInterviewTomorrow ? 'orange' : 'gray'}
           trend="Nächster: Morgen"
+          trendColor={nextInterviewTomorrow ? 'orange' : 'gray'}
           href="/calendar"
         />
+
         <StatCard
           icon={AlertCircle}
           label="Follow-ups fällig"
           value={followups}
-          color="rose"
+          color={hasUrgentFollowups ? 'red' : 'gray'}
           trend="Dringend erledigen"
+          trendColor={hasUrgentFollowups ? 'red' : 'gray'}
           href="/applications?status=Beworben"
         />
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -111,7 +120,7 @@ export default function Dashboard() {
         {/* Action Sidebar */}
         <div className="space-y-8">
           <motion.div variants={itemVariants} className="glass rounded-[2.5rem] p-8 border border-white/10 shadow-xl">
-            <h3 className="text-sm font-black text-gray-900 dark:text-white mb-6 uppercase tracking-widest">Nächste Termine</h3>
+            <h3 className="text-sm font-black text-gray-900 dark:text-white mb-6 tracking-widest">Nächste Termine</h3>
             <div className="space-y-4">
               {upcomingInterviews.length > 0 ? upcomingInterviews.map((job) => (
                 <div key={job.id} className="flex items-center gap-4 group cursor-pointer p-4 hover:bg-white/5 rounded-2xl transition-all border border-transparent hover:border-white/5">
@@ -119,7 +128,7 @@ export default function Dashboard() {
                     {job.date ? new Date(job.date).getDate() : '?'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-[11px] uppercase text-gray-900 dark:text-white truncate">{job.company}</p>
+                    <p className="font-black text-[11px] text-gray-900 dark:text-white truncate">{job.company}</p>
                     <p className="text-[10px] text-gray-500 font-bold truncate">{job.title}</p>
                   </div>
                 </div>
@@ -127,7 +136,7 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-500 italic p-4">Keine anstehenden Termine.</p>
               )}
             </div>
-            <Link href="/calendar" className="block w-full text-center py-4 mt-6 bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-blue-500 rounded-2xl border border-white/5 transition-all">
+            <Link href="/calendar" className="block w-full text-center py-4 mt-6 bg-white/5 hover:bg-white/10 text-[10px] font-black tracking-widest text-blue-500 rounded-2xl border border-white/5 transition-all">
               Zum Kalender
             </Link>
           </motion.div>
@@ -146,13 +155,15 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, color, trend, href }: any) {
+function StatCard({ icon: Icon, label, value, color, trend, trendColor, href }: any) {
+
   const colors: any = {
-    blue: 'text-blue-500 bg-blue-500/10 shadow-blue-500/10',
-    purple: 'text-purple-500 bg-purple-500/10 shadow-purple-500/10',
+    green: 'text-green-500 bg-green-500/10 shadow-green-500/10',
     orange: 'text-orange-500 bg-orange-500/10 shadow-orange-500/10',
-    rose: 'text-rose-500 bg-rose-500/10 shadow-rose-500/10',
+    red: 'text-red-500 bg-red-500/10 shadow-red-500/10',
+    gray: 'text-gray-400 bg-gray-400/10 shadow-gray-400/10',
   };
+
 
   const content = (
     <motion.div variants={itemVariants} className="glass shadow-xl rounded-[2.5rem] p-8 border border-white/10 hover:border-blue-500/30 transition-all group overflow-hidden relative h-full">
@@ -160,7 +171,7 @@ function StatCard({ icon: Icon, label, value, color, trend, href }: any) {
         <div className={`p-4 rounded-2xl ${colors[color]} group-hover:scale-110 transition-transform duration-500`}>
           <Icon size={24} />
         </div>
-        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="text-[10px] font-black text-gray-400 tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
           Ansehen
         </div>
       </div>
@@ -168,7 +179,9 @@ function StatCard({ icon: Icon, label, value, color, trend, href }: any) {
         <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{label}</p>
         <div className="flex items-baseline gap-2">
           <h4 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{value}</h4>
-          <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">{trend}</span>
+          <span className={`text-[9px] font-black uppercase tracking-widest text-${trendColor}-500`}>
+            {trend}
+          </span>
         </div>
       </div>
     </motion.div>

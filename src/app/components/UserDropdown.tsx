@@ -57,7 +57,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
                     )}
                 </div>
                 <div className="hidden sm:flex items-center gap-2">
-                    <span className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">{fullName}</span>
+                    <span className="text-sm font-black text-gray-900 dark:text-white tracking-tight">{fullName}</span>
                     <ChevronDown size={14} className={`text-gray-500 transition-all duration-300 ${isOpen ? 'rotate-180 text-white' : ''}`} />
                 </div>
             </button>

@@ -201,26 +201,26 @@ export default function ApplicationsPage() {
                               <Building2 size={24} />
                             </div>
                             <div className="min-w-0">
-                              <p className="font-black text-sm text-gray-900 dark:text-white uppercase tracking-tight truncate">{job.title}</p>
-                              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">{job.company}</p>
+                              <p className="font-black text-sm text-gray-900 dark:text-white tracking-tight truncate">{job.title}</p>
+                              <p className="text-[10px] font-bold text-gray-500 tracking-widest mt-0.5">{job.company}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-8 py-6">
-                          <span className={clsx("px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest", statusStyles[job.status])}>
+                          <span className={clsx("px-4 py-1.5 rounded-xl text-[9px] font-black tracking-widest", statusStyles[job.status])}>
                             {job.status}
                           </span>
                         </td>
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-2">
                             <div className={clsx("w-2 h-2 rounded-full", job.priority === 'High' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : job.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500')}></div>
-                            <span className={clsx("text-[10px] font-black uppercase tracking-widest", priorityStyles[job.priority])}>
+                            <span className={clsx("text-[10px] font-black tracking-widest", priorityStyles[job.priority])}>
                               {job.priority === 'High' ? 'Hoch' : job.priority === 'Medium' ? 'Mittel' : 'Niedrig'}
                             </span>
                           </div>
                         </td>
                         <td className="px-8 py-6">
-                          <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                          <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 tracking-widest">
                             <Clock size={14} className="text-blue-500 opacity-50" />
                             {new Date(job.lastUpdate).toLocaleDateString('de-DE')}
                           </div>
@@ -233,7 +233,7 @@ export default function ApplicationsPage() {
                       </motion.tr>
                     )) : (
                       <tr>
-                        <td colSpan={5} className="px-8 py-20 text-center text-gray-500 font-black uppercase tracking-[0.3em] text-xs">Keine Bewerbungen gefunden</td>
+                        <td colSpan={5} className="px-8 py-20 text-center text-gray-500 font-black tracking-[0.3em] text-xs">Keine Bewerbungen gefunden</td>
                       </tr>
                     )}
                   </tbody>
@@ -283,21 +283,21 @@ export default function ApplicationsPage() {
                         type="text"
                         value={editFormData.title}
                         onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
-                        className="w-full bg-black/5 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white font-black uppercase text-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full bg-black/5 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white font-black text-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="Position"
                       />
                       <input
                         type="text"
                         value={editFormData.company}
                         onChange={(e) => setEditFormData({ ...editFormData, company: e.target.value })}
-                        className="w-full bg-black/5 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-1 text-gray-600 dark:text-gray-300 font-bold uppercase text-[10px] tracking-widest focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full bg-black/5 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-1 text-gray-600 dark:text-gray-300 font-bold text-[10px] tracking-widest focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="Firma"
                       />
                     </div>
                   ) : (
                     <div className="min-w-0">
-                      <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-tight uppercase truncate">{selectedJob.title}</h2>
-                      <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-1 tracking-[0.2em] truncate">{selectedJob.company}</p>
+                      <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-tight truncate">{selectedJob.title}</h2>
+                      <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-widest mt-1 tracking-[0.2em] truncate">{selectedJob.company}</p>
                     </div>
                   )}
                 </div>
@@ -313,7 +313,7 @@ export default function ApplicationsPage() {
                 <button
                   onClick={() => setActiveTab('details')}
                   className={clsx(
-                    "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all",
                     activeTab === 'details' ? "bg-black/5 dark:bg-white/10 text-gray-900 dark:text-white shadow-lg shadow-black/5 dark:shadow-white/5" : "text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
@@ -322,7 +322,7 @@ export default function ApplicationsPage() {
                 <button
                   onClick={() => setActiveTab('prep')}
                   className={clsx(
-                    "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all",
                     activeTab === 'prep' ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
@@ -343,7 +343,7 @@ export default function ApplicationsPage() {
                               type="text"
                               value={editFormData.location}
                               onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
-                              className="w-full bg-black/5 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-lg px-2 py-1 text-black dark:text-white font-black uppercase text-[11px] focus:ring-1 focus:ring-blue-500 outline-none"
+                              className="w-full bg-black/5 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-lg px-2 py-1 text-black dark:text-white font-black text-[11px] focus:ring-1 focus:ring-blue-500 outline-none"
                             />
                           ) : selectedJob.location || 'Remote'}
                         />
@@ -363,7 +363,7 @@ export default function ApplicationsPage() {
                                   await updateJob(updated);
                                 }
                               }}
-                              className="w-full bg-transparent border-none text-black dark:text-white font-black uppercase text-[11px] outline-none cursor-pointer appearance-none"
+                              className="w-full bg-transparent border-none text-black dark:text-white font-black text-[11px] outline-none cursor-pointer appearance-none"
                             >
                               {statuses.map(s => <option key={s} value={s} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">{s}</option>)}
                             </select>
@@ -390,7 +390,7 @@ export default function ApplicationsPage() {
                                   await updateJob(updated);
                                 }
                               }}
-                              className="w-full bg-transparent border-none text-black dark:text-white font-black uppercase text-[11px] outline-none cursor-pointer appearance-none"
+                              className="w-full bg-transparent border-none text-black dark:text-white font-black text-[11px] outline-none cursor-pointer appearance-none"
                             >
                               {priorities.map(p => (
                                 <option key={p} value={p} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
@@ -405,7 +405,7 @@ export default function ApplicationsPage() {
                       <div className="space-y-8">
                         {/* Summary */}
                         <div className="space-y-4">
-                          <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Zusammenfassung</label>
+                          <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Zusammenfassung</label>
                           <div className="glass-card p-6 rounded-[2rem] border-gray-200 dark:border-white/5 bg-black/5 dark:bg-white/5">
                             {isEditing ? (
                               <textarea
@@ -424,7 +424,7 @@ export default function ApplicationsPage() {
                         {/* Requirements */}
                         {((selectedJob.requirements?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
-                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Anforderungen</label>
+                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Anforderungen</label>
                             <ul className="space-y-2">
                               {(isEditing ? (editFormData?.requirements || []) : (selectedJob.requirements || [])).map((req, i) => (
                                 <li key={i} className="flex items-start gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5 text-xs text-gray-700 dark:text-gray-200">
@@ -439,7 +439,7 @@ export default function ApplicationsPage() {
                         {/* Benefits */}
                         {((selectedJob.benefits?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
-                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Benefits</label>
+                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Benefits</label>
                             <div className="grid grid-cols-2 gap-3">
                               {(isEditing ? (editFormData?.benefits || []) : (selectedJob.benefits || [])).map((ben, i) => (
                                 <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/10 text-xs font-bold">
@@ -454,10 +454,10 @@ export default function ApplicationsPage() {
                         {/* Skills */}
                         {((selectedJob.skills?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
-                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Skills & Tech Stack</label>
+                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Skills & Tech Stack</label>
                             <div className="flex flex-wrap gap-2">
                               {(isEditing ? (editFormData?.skills || []) : (selectedJob.skills || [])).map((skill, i) => (
-                                <span key={i} className="px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-wider border border-blue-600/10">
+                                <span key={i} className="px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 text-[10px] font-black tracking-wider border border-blue-600/10">
                                   {skill}
                                 </span>
                               ))}
@@ -467,7 +467,7 @@ export default function ApplicationsPage() {
 
                         {/* Notes */}
                         <div className="space-y-4">
-                          <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Meine Notizen</label>
+                          <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Meine Notizen</label>
                           <div className="glass-card p-6 rounded-[2rem] border-gray-200 dark:border-white/5 bg-amber-500/5 border-amber-500/10">
                             {isEditing ? (
                               <textarea
@@ -485,7 +485,7 @@ export default function ApplicationsPage() {
                       </div>
 
                       <div className="space-y-6">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Schnell-Briefe (Vorlagen)</label>
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Schnell-Briefe (Vorlagen)</label>
                         <div className="grid grid-cols-1 gap-4">
                           {templates.length > 0 ? templates.map(t => (
                             <button
@@ -498,13 +498,13 @@ export default function ApplicationsPage() {
                                   <Copy size={18} />
                                 </div>
                                 <div>
-                                  <p className="text-xs font-black text-gray-800 dark:text-gray-100 uppercase tracking-tight">{t.name}</p>
-                                  <p className="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">Kopieren & Ausfüllen</p>
+                                  <p className="text-xs font-black text-gray-800 dark:text-gray-100 tracking-tight">{t.name}</p>
+                                  <p className="text-[9px] text-gray-400 dark:text-gray-500 tracking-widest mt-0.5">Kopieren & Ausfüllen</p>
                                 </div>
                               </div>
                               {copiedId === selectedJob.id && (
                                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-2 text-green-500 text-[10px] font-black">
-                                  <CheckCircle2 size={16} /> KOPIERT
+                                  <CheckCircle2 size={16} /> Kopiert
                                 </motion.div>
                               )}
                               <ArrowRight size={18} className="text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -521,8 +521,8 @@ export default function ApplicationsPage() {
                         <div className="absolute top-0 right-0 p-10 text-blue-500/10 group-hover:text-blue-500/20 transition-all">
                           <MessageSquare size={120} />
                         </div>
-                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight relative z-10">In Arbeit-Checklist</h4>
-                        <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mb-8 relative z-10">Bereite dich optimal vor</p>
+                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight relative z-10">In Arbeit-Checklist</h4>
+                        <p className="text-[10px] text-blue-500 font-black tracking-widest mb-8 relative z-10">Bereite dich optimal vor</p>
 
                         <div className="space-y-4 relative z-10">
                           {selectedJob.prepTasks?.map((task, i) => (
@@ -560,7 +560,7 @@ export default function ApplicationsPage() {
                   <>
                     <button
                       onClick={handleSaveEdit}
-                      className="flex-1 h-14 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-blue-500/20"
+                      className="flex-1 h-14 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] tracking-widest rounded-2xl transition-all shadow-lg shadow-blue-500/20"
                     >
                       Speichern
                     </button>
@@ -569,7 +569,7 @@ export default function ApplicationsPage() {
                         setIsEditing(false);
                         setEditFormData({ ...selectedJob }); // Reset
                       }}
-                      className="h-14 px-6 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all border border-black/5 dark:border-white/5"
+                      className="h-14 px-6 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-black text-[10px] tracking-widest rounded-2xl transition-all border border-black/5 dark:border-white/5"
                     >
                       Abbrechen
                     </button>
@@ -578,7 +578,7 @@ export default function ApplicationsPage() {
                   <>
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="flex-1 h-14 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all border border-black/5 dark:border-white/5 flex items-center justify-center gap-3"
+                      className="flex-1 h-14 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-black text-[10px] tracking-widest rounded-2xl transition-all border border-black/5 dark:border-white/5 flex items-center justify-center gap-3"
                     >
                       <Edit size={18} className="text-blue-500" /> Bearbeiten
                     </button>
@@ -589,7 +589,7 @@ export default function ApplicationsPage() {
                           setIsDrawerOpen(false);
                         }
                       }}
-                      className="h-14 px-6 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all shadow-lg hover:shadow-rose-500/20"
+                      className="h-14 px-6 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white font-black text-[10px] tracking-widest rounded-2xl transition-all shadow-lg hover:shadow-rose-500/20"
                     >
                       <Trash2 size={20} />
                     </button>
@@ -611,7 +611,7 @@ function DetailCard({ icon: Icon, label, value }: any) {
         <Icon size={16} className="text-blue-500" />
         <span className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">{label}</span>
       </div>
-      <div className="text-[11px] font-black text-black dark:text-white uppercase tracking-tight group-hover:text-blue-500 transition-colors">{value}</div>
+      <div className="text-[11px] font-black text-black dark:text-white tracking-tight group-hover:text-blue-500 transition-colors">{value}</div>
     </div>
   );
 }

@@ -53,7 +53,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
               <span className={`text-white font-bold text-xl italic tracking-tighter ${lora.className}`}>a</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight"> applyo            </h1>
+            <Link href="/">
+              <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight"> applyo            </h1>
+            </Link>
           </div>
           <button onClick={onClose} className="lg:hidden p-2 text-gray-500 hover:bg-white/10 rounded-xl">
             <X size={24} />

@@ -164,7 +164,7 @@ export default function SettingsPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Einstellungen</h1>
-          <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-2">Verwalte dein Konto & Erlebnis</p>
+          <p className="text-[10px] font-black text-gray-500 tracking-[0.2em] mt-2">Verwalte dein Konto & Erlebnis</p>
         </div>
         <AnimatePresence>
           {(success || error) && (
@@ -251,12 +251,12 @@ export default function SettingsPage() {
                         </div>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                         <div>
-                          <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight uppercase">Avatar Foto</h3>
+                          <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Avatar Foto</h3>
                           <div className="flex gap-4 mt-2">
-                            <button type="button" onClick={handleAvatarClick} className="text-xs font-black text-blue-500 uppercase tracking-widest hover:underline">Ändern</button>
-                            {profile.avatarUrl && <button type="button" className="text-xs font-black text-red-500 uppercase tracking-widest hover:underline">Löschen</button>}
+                            <button type="button" onClick={handleAvatarClick} className="text-xs font-black text-blue-500 tracking-widest hover:underline">Ändern</button>
+                            {profile.avatarUrl && <button type="button" className="text-xs font-black text-red-500 tracking-widest hover:underline">Löschen</button>}
                           </div>
-                          <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Empfohlen: 400x400 JPG/PNG</p>
+                          <p className="text-[10px] text-gray-500 tracking-widest mt-2">Empfohlen: 400x400 JPG/PNG</p>
                         </div>
                       </div>
 
@@ -264,7 +264,7 @@ export default function SettingsPage() {
                         <SettingInput label="Anzeigename" value={profile.name} onChange={(v: string) => setProfile({ ...profile, name: v })} placeholder="Max Mustermann" />
                         <SettingInput label="Berufliche Rolle" value={profile.jobTitle} onChange={(v: string) => setProfile({ ...profile, jobTitle: v })} placeholder="Senior Entwickler" icon={Briefcase} />
                         <div className="space-y-3">
-                          <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Arbeitspräferenz</label>
+                          <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 tracking-widest uppercase">Arbeitspräferenz</label>
                           <select
                             value={profile.location}
                             onChange={e => setProfile({ ...profile, location: e.target.value })}
@@ -279,7 +279,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="pt-8 border-t border-black/5 dark:border-white/5 flex justify-end">
-                        <button type="submit" disabled={saving} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
+                        <button type="submit" disabled={saving} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-2xl text-[10px] font-black tracking-widest shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
                           <Save size={18} /> {saving ? 'Verarbeitung...' : 'Änderungen speichern'}
                         </button>
                       </div>
@@ -306,8 +306,8 @@ export default function SettingsPage() {
                             <button onClick={() => setEditingTemplate(template)} className="p-2 text-gray-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg"><Edit2 size={16} /></button>
                           </div>
                         </div>
-                        <h4 className="font-black text-sm text-gray-900 dark:text-white mb-1 uppercase tracking-tight">{template.name}</h4>
-                        <p className="text-[10px] text-gray-500 font-bold mb-4 truncate text-blue-500 uppercase tracking-widest">{template.subject}</p>
+                        <h4 className="font-black text-sm text-gray-900 dark:text-white mb-1 tracking-tight">{template.name}</h4>
+                        <p className="text-[10px] text-gray-500 font-bold mb-4 truncate text-blue-500 tracking-widest">{template.subject}</p>
                         <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-3 leading-relaxed italic border-l-2 border-black/5 dark:border-white/5 pl-4">&quot;{template.body}&quot;</p>
                       </motion.div>
                     ))}
@@ -322,7 +322,7 @@ export default function SettingsPage() {
                       <SettingInput label="E-Mail Adresse" value={email} onChange={setEmail} icon={Mail} type="email" />
                       <SettingInput label="Neues Passwort" value={newPassword} onChange={setNewPassword} icon={Lock} type="password" />
                       <div className="flex justify-end pt-4 border-t border-black/5 dark:border-white/5">
-                        <button className="bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-gray-900 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all">Anmeldedaten aktualisieren</button>
+                        <button className="bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 px-8 py-3 rounded-xl text-[10px] font-black tracking-widest hover:text-gray-900 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all">Anmeldedaten aktualisieren</button>
                       </div>
                     </div>
                   </Card>
@@ -337,19 +337,19 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-4">
                           <div className="p-3 bg-blue-600/10 text-blue-600 rounded-2xl"><FileText size={24} /></div>
                           <div>
-                            <p className="font-black text-sm uppercase text-gray-900 dark:text-white">Datensatz exportieren</p>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Alle Jobs als CSV herunterladen</p>
+                            <p className="font-black text-sm text-gray-900 dark:text-white">Datensatz exportieren</p>
+                            <p className="text-[10px] text-gray-500 font-bold tracking-widest mt-1">Alle Jobs als CSV herunterladen</p>
                           </div>
                         </div>
-                        <button className="text-blue-500 font-black text-xs uppercase hover:underline">Starten</button>
+                        <button className="text-blue-500 font-black text-xs hover:underline">Starten</button>
                       </div>
 
                       <div className="p-6 bg-rose-500/5 rounded-3xl border border-rose-500/10 flex items-center justify-between">
                         <div>
-                          <p className="font-black text-sm uppercase text-rose-500">Atomic Wipe</p>
+                          <p className="font-black text-sm text-rose-500">Atomic Wipe</p>
                           <p className="text-[10px] text-rose-500/60 font-bold tracking-widest mt-1">Alle Tracking-Daten dauerhaft löschen</p>
                         </div>
-                        <button className="bg-rose-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-rose-500/20 active:scale-95 transition-all">DATEN LÖSCHEN</button>
+                        <button className="bg-rose-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black shadow-lg shadow-rose-500/20 active:scale-95 transition-all">DATEN LÖSCHEN</button>
                       </div>
                     </div>
                   </Card>
@@ -394,7 +394,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="p-10 bg-black/5 dark:bg-white/5 border-t border-black/5 dark:border-white/5 flex gap-4">
-                <button onClick={() => { setIsAddingTemplate(false); setEditingTemplate(null); }} className="flex-1 py-4 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-700 dark:text-gray-400 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all">Verwerfen</button>
+                <button onClick={() => { setIsAddingTemplate(false); setEditingTemplate(null); }} className="flex-1 py-4 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-700 dark:text-gray-400 font-black text-[10px] tracking-widest rounded-2xl transition-all">Verwerfen</button>
                 <button onClick={async () => {
                   setSaving(true);
                   if (isAddingTemplate) await addTemplate(newTemplate);
@@ -402,7 +402,7 @@ export default function SettingsPage() {
                   setSaving(false);
                   setIsAddingTemplate(false);
                   setEditingTemplate(null);
-                }} className="flex-1 py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/20 rounded-2xl hover:scale-105 transition-all">
+                }} className="flex-1 py-4 bg-blue-600 text-white font-black text-[10px] tracking-widest shadow-xl shadow-blue-500/20 rounded-2xl hover:scale-105 transition-all">
                   {saving ? 'Synchronisierung...' : 'Vorlage speichern'}
                 </button>
               </div>

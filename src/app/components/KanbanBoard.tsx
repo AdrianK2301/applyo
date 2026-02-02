@@ -130,7 +130,7 @@ function KanbanColumn({ col, jobs, onJobClick }: { col: { id: string; title: str
         <div className="flex-shrink-0 w-[320px] flex flex-col group/col">
             <div className="flex items-center justify-between mb-5 px-3">
                 <div className="flex items-center gap-3">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{col.title}</h3>
+                    <h3 className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-400">{col.title}</h3>
                     <span className="bg-blue-600/10 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-lg">
                         {jobs.length}
                     </span>
@@ -149,7 +149,7 @@ function KanbanColumn({ col, jobs, onJobClick }: { col: { id: string; title: str
                             ))}
                         </AnimatePresence>
                         {jobs.length === 0 && (
-                            <div className="h-32 border-2 border-dashed border-white/5 rounded-[2rem] flex flex-col items-center justify-center text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
+                            <div className="h-32 border-2 border-dashed border-white/5 rounded-[2rem] flex flex-col items-center justify-center text-gray-500 text-[10px] font-black tracking-[0.2em] opacity-40">
                                 Leer
                             </div>
                         )}
@@ -223,7 +223,7 @@ function JobCardContent({ job, isOverlay = false }: { job: Job; isOverlay?: bool
             isOverlay && "glass bg-blue-600/10 border-blue-500 shadow-2xl ring-4 ring-blue-500/10"
         )}>
             <div className="flex justify-between items-start mb-4">
-                <div className={clsx("px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest text-white shadow-sm", priorityStyles[job.priority])}>
+                <div className={clsx("px-2 py-0.5 rounded-md text-[8px] font-black tracking-widest text-white shadow-sm", priorityStyles[job.priority])}>
                     {priorityLabels[job.priority]}
                 </div>
                 <button className="text-gray-500 hover:text-white transition-colors">
@@ -231,7 +231,7 @@ function JobCardContent({ job, isOverlay = false }: { job: Job; isOverlay?: bool
                 </button>
             </div>
 
-            <h4 className="font-black text-xs text-gray-900 dark:text-white line-clamp-2 leading-tight mb-2 group-hover/card:text-blue-500 transition-colors uppercase tracking-tight">{job.title}</h4>
+            <h4 className="font-black text-xs text-gray-900 dark:text-white line-clamp-2 leading-tight mb-2 group-hover/card:text-blue-500 transition-color tracking-tight">{job.title}</h4>
 
             <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-4">
                 <Building2 size={12} className="text-blue-500" />
@@ -246,7 +246,7 @@ function JobCardContent({ job, isOverlay = false }: { job: Job; isOverlay?: bool
             )}
 
             <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
-                <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-black uppercase tracking-widest">
+                <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-black tracking-widest">
                     <Calendar size={10} className="text-blue-500" />
                     {new Date(job.lastUpdate).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })}
                 </div>
