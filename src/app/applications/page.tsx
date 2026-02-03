@@ -651,7 +651,6 @@ export default function ApplicationsPage() {
                     <div className="space-y-8">
                       <div className="p-8 glass-card border-indigo-500/20 bg-indigo-600/5 rounded-[2.5rem] relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-10 text-indigo-500/10 group-hover:text-indigo-500/20 transition-all">
-                          <Wand2 size={120} />
                         </div>
                         <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight relative z-10">KI-Optimierung</h4>
                         <p className="text-[10px] text-indigo-500 font-black tracking-widest mb-8 relative z-10">Unterlagen auf dieses Unternehmen zuschneiden</p>
@@ -681,7 +680,7 @@ export default function ApplicationsPage() {
                           <button
                             onClick={handleTailor}
                             disabled={isTailoring}
-                            className="w-full h-16 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-black text-[11px] tracking-[0.2em] rounded-2xl shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 relative z-10 uppercase"
+                            className="w-full h-16 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-black text-[11px] tracking-[0.2em] rounded-2xl shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 relative z-10"
                           >
                             {isTailoring ? (
                               <>
@@ -690,7 +689,7 @@ export default function ApplicationsPage() {
                               </>
                             ) : (
                               <>
-                                <Sparkles size={18} />
+
                                 Jetzt mit KI anpassen
                               </>
                             )}

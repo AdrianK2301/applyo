@@ -122,8 +122,8 @@ export default function Dashboard() {
         <motion.div variants={itemVariants} className="lg:col-span-2 glass-card rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group">
           <div className="flex justify-between items-center mb-10">
             <div>
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase">📋 Nächste Schritte</h3>
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-2">Was jetzt zu tun ist</p>
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">📋 Nächste Schritte</h3>
+              <p className="text-[10px] font-black text-gray-500 tracking-[0.2em] mt-2">Was jetzt zu tun ist</p>
             </div>
           </div>
 
