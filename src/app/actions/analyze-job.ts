@@ -77,6 +77,8 @@ export async function analyzeJob(url: string) {
       - requirements (array of strings): List of job requirements
       - benefits (array of strings): List of benefits/perks
       - skills (array of strings): List of required tech stack/skills
+      - contact_person (string): Name of the recruiter or hiring manager if found
+      - contact_info (string): Email or phone number of the contact person if found
       
       Text to analyze:
       ${text}

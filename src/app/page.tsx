@@ -2,7 +2,7 @@
 'use client';
 
 import { useJobs } from '@/app/hooks/useJobs';
-import { Briefcase, Clock, AlertCircle, Calendar } from 'lucide-react';
+import { Briefcase, Clock, AlertCircle, Calendar, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Job } from '@/app/lib/data';
@@ -41,7 +41,7 @@ export default function Dashboard() {
   );
 
   const activeJobs = jobs.filter(j => ['Beworben', 'Interview'].includes(j.status)).length;
-  const interviews = jobs.filter(j => j.status === 'Interview').length;
+  const interviews = jobs.filter(j => j.status === 'Interview' || j.interviewDate).length;
 
   // Calculate follow-ups: jobs with 'Beworben' status older than 7 days without update
   const sevenDaysAgo = new Date();
@@ -51,10 +51,30 @@ export default function Dashboard() {
     new Date(j.lastUpdate) < sevenDaysAgo
   ).length;
 
+  // Calculate jobs added this week for each category
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  const activeJobsThisWeek = jobs.filter(j =>
+    ['Beworben', 'Interview'].includes(j.status) &&
+    new Date(j.lastUpdate) >= oneWeekAgo
+  ).length;
+
+  const interviewsThisWeek = jobs.filter(j =>
+    j.status === 'Interview' &&
+    new Date(j.lastUpdate) >= oneWeekAgo
+  ).length;
+
+  const followupsThisWeek = jobs.filter(j =>
+    j.status === 'Beworben' &&
+    new Date(j.lastUpdate) < sevenDaysAgo &&
+    new Date(j.lastUpdate) >= oneWeekAgo
+  ).length;
+
   const upcomingInterviews = jobs.filter(j => j.status === 'Interview').sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime()).slice(0, 3);
 
-  const hasApplicationsThisWeek = activeJobs > 0;
-  const nextInterviewTomorrow = interviews > 0; // optional später datumsgesteuert
+  const hasApplicationsThisWeek = activeJobsThisWeek > 0;
+  const nextInterviewTomorrow = interviewsThisWeek > 0; // optional später datumsgesteuert
   const hasUrgentFollowups = followups > 0;
   return (
     <motion.div
@@ -98,22 +118,123 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Main Chart / Area */}
+        {/* Next Steps - Main Area */}
         <motion.div variants={itemVariants} className="lg:col-span-2 glass-card rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group">
           <div className="flex justify-between items-center mb-10">
             <div>
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase">Status Quo</h3>
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-2">Bewerbungs-Performance</p>
-            </div>
-            <div className="flex gap-2">
-              {['Woche', 'Monat'].map(t => (
-                <button key={t} className="px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-colors">{t}</button>
-              ))}
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase">📋 Nächste Schritte</h3>
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-2">Was jetzt zu tun ist</p>
             </div>
           </div>
-          <div className="h-64 bg-gradient-to-br from-blue-600/10 to-transparent rounded-[2rem] border border-white/5 flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.2),transparent)]"></div>
-            <p className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px]">Statistiken werden generiert...</p>
+
+          <div className="space-y-4">
+            {(() => {
+              // Priority logic for next steps
+              const now = new Date();
+              const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+              const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+              const nextSteps: Array<{
+                job: Job;
+                action: string;
+                icon: string;
+                timeContext: string;
+                priority: number;
+              }> = [];
+
+              jobs.forEach(job => {
+                // 1. Urgent interviews (within next 3 days) - Highest priority
+                if (job.status === 'Interview' && job.interviewDate) {
+                  const interviewDate = new Date(job.interviewDate);
+                  if (interviewDate <= threeDaysFromNow && interviewDate >= now) {
+                    const daysUntil = Math.ceil((interviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                    nextSteps.push({
+                      job,
+                      action: 'Interview vorbereiten',
+                      icon: '⚡',
+                      timeContext: daysUntil === 0 ? 'Heute!' : daysUntil === 1 ? 'Morgen' : `In ${daysUntil} Tagen`,
+                      priority: 1
+                    });
+                  }
+                }
+
+                // 2. Overdue follow-ups (7+ days old in "Beworben")
+                if (job.status === 'Beworben') {
+                  const lastUpdateDate = new Date(job.lastUpdate);
+                  if (lastUpdateDate < sevenDaysAgo) {
+                    const daysAgo = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24));
+                    nextSteps.push({
+                      job,
+                      action: 'Follow-up senden',
+                      icon: '📧',
+                      timeContext: `Vor ${daysAgo} Tagen beworben`,
+                      priority: 2
+                    });
+                  }
+                }
+
+                // 3. Jobs "In Arbeit" (need to be submitted)
+                if (job.status === 'In Arbeit') {
+                  const lastUpdateDate = new Date(job.lastUpdate);
+                  const daysInProgress = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24));
+                  nextSteps.push({
+                    job,
+                    action: 'Bewerbung abschließen',
+                    icon: '✍️',
+                    timeContext: daysInProgress === 0 ? 'Heute begonnen' : `In Arbeit seit ${daysInProgress} ${daysInProgress === 1 ? 'Tag' : 'Tagen'}`,
+                    priority: 3
+                  });
+                }
+
+                // 4. Oldest "Merkliste" items (to keep momentum)
+                if (job.status === 'Merkliste') {
+                  const lastUpdateDate = new Date(job.lastUpdate);
+                  const daysOld = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24));
+                  if (daysOld > 3) {
+                    nextSteps.push({
+                      job,
+                      action: 'Bewerbung starten',
+                      icon: '💾',
+                      timeContext: `Gespeichert vor ${daysOld} Tagen`,
+                      priority: 4
+                    });
+                  }
+                }
+              });
+
+              // Sort by priority and take top 3
+              const topSteps = nextSteps
+                .sort((a, b) => a.priority - b.priority)
+                .slice(0, 3);
+
+              return topSteps.length > 0 ? topSteps.map((step, index) => (
+                <Link
+                  key={step.job.id}
+                  href="/applications"
+                  className="block"
+                >
+                  <div className="p-6 glass border border-white/5 rounded-[2rem] hover:bg-white/5 hover:border-blue-500/30 transition-all group/step cursor-pointer">
+                    <div className="flex items-start gap-5">
+                      <div className="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center text-2xl group-hover/step:bg-blue-600 group-hover/step:scale-110 transition-all shadow-sm">
+                        {step.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-black text-blue-500 uppercase tracking-tight mb-1">{step.action}</p>
+                        <p className="font-black text-base text-gray-900 dark:text-white uppercase tracking-tight truncate">{step.job.company}</p>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 truncate">{step.job.title}</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">{step.timeContext}</p>
+                      </div>
+                      <ArrowRight className="text-gray-400 group-hover/step:text-blue-500 group-hover/step:translate-x-1 transition-all shrink-0" size={20} />
+                    </div>
+                  </div>
+                </Link>
+              )) : (
+                <div className="h-64 bg-gradient-to-br from-blue-600/10 to-transparent rounded-[2rem] border border-white/5 flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.2),transparent)]"></div>
+                  <p className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px] relative z-10">🎉 Alles erledigt!</p>
+                </div>
+              );
+            })()}
           </div>
         </motion.div>
 
@@ -125,7 +246,7 @@ export default function Dashboard() {
               {upcomingInterviews.length > 0 ? upcomingInterviews.map((job) => (
                 <div key={job.id} className="flex items-center gap-4 group cursor-pointer p-4 hover:bg-white/5 rounded-2xl transition-all border border-transparent hover:border-white/5">
                   <div className="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm font-black">
-                    {job.date ? new Date(job.date).getDate() : '?'}
+                    {job.interviewDate ? new Date(job.interviewDate).getDate() : job.date ? new Date(job.date).getDate() : '?'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-[11px] text-gray-900 dark:text-white truncate">{job.company}</p>
@@ -156,7 +277,6 @@ export default function Dashboard() {
 }
 
 function StatCard({ icon: Icon, label, value, color, trend, trendColor, href }: any) {
-
   const colors: any = {
     green: 'text-green-500 bg-green-500/10 shadow-green-500/10',
     orange: 'text-orange-500 bg-orange-500/10 shadow-orange-500/10',
@@ -164,11 +284,10 @@ function StatCard({ icon: Icon, label, value, color, trend, trendColor, href }: 
     gray: 'text-gray-400 bg-gray-400/10 shadow-gray-400/10',
   };
 
-
   const content = (
     <motion.div variants={itemVariants} className="glass shadow-xl rounded-[2.5rem] p-8 border border-white/10 hover:border-blue-500/30 transition-all group overflow-hidden relative h-full">
       <div className="flex justify-between items-start mb-6">
-        <div className={`p-4 rounded-2xl ${colors[color]} group-hover:scale-110 transition-transform duration-500`}>
+        <div className={`p-4 rounded-2xl ${colors[color] || colors.gray} group-hover:scale-110 transition-transform duration-500`}>
           <Icon size={24} />
         </div>
         <div className="text-[10px] font-black text-gray-400 tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
@@ -179,7 +298,7 @@ function StatCard({ icon: Icon, label, value, color, trend, trendColor, href }: 
         <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{label}</p>
         <div className="flex items-baseline gap-2">
           <h4 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{value}</h4>
-          <span className={`text-[9px] font-black uppercase tracking-widest text-${trendColor}-500`}>
+          <span className={`text-[9px] font-black uppercase tracking-widest ${trendColor === 'green' ? 'text-green-500' : trendColor === 'orange' ? 'text-orange-500' : trendColor === 'red' ? 'text-red-500' : 'text-gray-500'}`}>
             {trend}
           </span>
         </div>

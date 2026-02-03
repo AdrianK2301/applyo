@@ -24,8 +24,14 @@ import {
   Edit,
   Clock,
   User,
-  MessageSquare
+  MessageSquare,
+  Wand2,
+  Sparkles,
+  FileDown,
+  Loader2
 } from 'lucide-react';
+import { tailorDocument } from '@/app/actions/tailor-document';
+import { generatePDF } from '@/app/lib/pdf';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Job, Status } from '@/app/lib/data';
@@ -40,7 +46,10 @@ export default function ApplicationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'prep'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'prep' | 'tailor'>('details');
+  const [isTailoring, setIsTailoring] = useState(false);
+  const [tailorDocType, setTailorDocType] = useState<'cv' | 'letter'>('letter');
+  const [tailoredText, setTailoredText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Job | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -103,6 +112,43 @@ export default function ApplicationsPage() {
     const updatedJob = { ...job, prepTasks: updatedTasks };
     setSelectedJob(updatedJob);
     await updateJob(updatedJob);
+  };
+
+  const handleTailor = async () => {
+    if (!selectedJob || !user) return;
+    setIsTailoring(true);
+    try {
+      const masterContent = tailorDocType === 'cv'
+        ? user.user_metadata?.cv_master_text
+        : user.user_metadata?.letter_master_text;
+
+      if (!masterContent) {
+        alert('Kein Master-Text in den Einstellungen gefunden. Bitte füge diesen zuerst hinzu.');
+        setIsTailoring(false);
+        return;
+      }
+
+      const { data, error: tailorError } = await tailorDocument(
+        selectedJob,
+        tailorDocType,
+        masterContent,
+        user.user_metadata?.full_name || 'Bewerber'
+      );
+
+      if (tailorError) throw new Error(tailorError);
+      if (data) setTailoredText(data);
+    } catch (err: any) {
+      alert(err.message || 'Fehler bei der KI-Anpassung.');
+    } finally {
+      setIsTailoring(false);
+    }
+  };
+
+  const handleDownloadTailored = () => {
+    if (!tailoredText || !selectedJob) return;
+    const typeLabel = tailorDocType === 'cv' ? 'Lebenslauf' : 'Anschreiben';
+    const fileName = `${selectedJob.company}_${typeLabel}_Anpassung.pdf`;
+    generatePDF(`${typeLabel} für ${selectedJob.company}`, tailoredText, fileName);
   };
 
   const statusStyles: Record<Status, string> = {
@@ -328,11 +374,24 @@ export default function ApplicationsPage() {
                 >
                   In Arbeit
                 </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('tailor');
+                    setTailoredText('');
+                  }}
+                  className={clsx(
+                    "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center gap-2",
+                    activeTab === 'tailor' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+
+                  KI-Anpassung
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-1 zero-scrollbar">
                 <div className="p-8">
-                  {activeTab === 'details' ? (
+                  {activeTab === 'details' && (
                     <div className="space-y-10">
                       <div className="grid grid-cols-2 gap-6">
                         <DetailCard
@@ -375,6 +434,18 @@ export default function ApplicationsPage() {
                           value={new Date(selectedJob.lastUpdate).toLocaleDateString()}
                         />
                         <DetailCard
+                          icon={Calendar}
+                          label="Interview Termin"
+                          value={isEditing ? (
+                            <input
+                              type="date"
+                              value={editFormData.interviewDate || ''}
+                              onChange={(e) => setEditFormData({ ...editFormData, interviewDate: e.target.value })}
+                              className="w-full bg-black/5 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-lg px-2 py-1 text-black dark:text-white font-black uppercase text-[11px] focus:ring-1 focus:ring-blue-500 outline-none"
+                            />
+                          ) : selectedJob.interviewDate ? new Date(selectedJob.interviewDate).toLocaleDateString('de-DE') : 'Nicht festgelegt'}
+                        />
+                        <DetailCard
                           icon={Eye}
                           label="Priorität"
                           value={
@@ -400,10 +471,35 @@ export default function ApplicationsPage() {
                             </select>
                           }
                         />
+                        <DetailCard
+                          icon={User}
+                          label="Ansprechpartner"
+                          value={isEditing ? (
+                            <input
+                              type="text"
+                              value={editFormData.contactPerson || ''}
+                              onChange={(e) => setEditFormData({ ...editFormData, contactPerson: e.target.value })}
+                              className="w-full bg-black/5 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-lg px-2 py-1 text-black dark:text-white font-black text-[11px] focus:ring-1 focus:ring-blue-500 outline-none"
+                              placeholder="Name"
+                            />
+                          ) : selectedJob.contactPerson || 'Nicht angegeben'}
+                        />
+                        <DetailCard
+                          icon={MessageSquare}
+                          label="Kontaktinfo"
+                          value={isEditing ? (
+                            <input
+                              type="text"
+                              value={editFormData.contactInfo || ''}
+                              onChange={(e) => setEditFormData({ ...editFormData, contactInfo: e.target.value })}
+                              className="w-full bg-black/5 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-lg px-2 py-1 text-black dark:text-white font-black text-[11px] focus:ring-1 focus:ring-blue-500 outline-none"
+                              placeholder="E-Mail / Tel"
+                            />
+                          ) : selectedJob.contactInfo || 'Nicht angegeben'}
+                        />
                       </div>
 
                       <div className="space-y-8">
-                        {/* Summary */}
                         <div className="space-y-4">
                           <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Zusammenfassung</label>
                           <div className="glass-card p-6 rounded-[2rem] border-gray-200 dark:border-white/5 bg-black/5 dark:bg-white/5">
@@ -421,7 +517,6 @@ export default function ApplicationsPage() {
                           </div>
                         </div>
 
-                        {/* Requirements */}
                         {((selectedJob.requirements?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Anforderungen</label>
@@ -436,7 +531,6 @@ export default function ApplicationsPage() {
                           </div>
                         )}
 
-                        {/* Benefits */}
                         {((selectedJob.benefits?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Benefits</label>
@@ -451,7 +545,6 @@ export default function ApplicationsPage() {
                           </div>
                         )}
 
-                        {/* Skills */}
                         {((selectedJob.skills?.length ?? 0) > 0 || isEditing) && (
                           <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Skills & Tech Stack</label>
@@ -465,7 +558,6 @@ export default function ApplicationsPage() {
                           </div>
                         )}
 
-                        {/* Notes */}
                         <div className="space-y-4">
                           <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Meine Notizen</label>
                           <div className="glass-card p-6 rounded-[2rem] border-gray-200 dark:border-white/5 bg-amber-500/5 border-amber-500/10">
@@ -515,7 +607,9 @@ export default function ApplicationsPage() {
                         </div>
                       </div>
                     </div>
-                  ) : (
+                  )}
+
+                  {activeTab === 'prep' && (
                     <div className="space-y-10">
                       <div className="p-8 glass-card border-blue-500/20 bg-blue-600/5 rounded-[2.5rem] relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-10 text-blue-500/10 group-hover:text-blue-500/20 transition-all">
@@ -549,6 +643,89 @@ export default function ApplicationsPage() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'tailor' && (
+                    <div className="space-y-8">
+                      <div className="p-8 glass-card border-indigo-500/20 bg-indigo-600/5 rounded-[2.5rem] relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-10 text-indigo-500/10 group-hover:text-indigo-500/20 transition-all">
+                          <Wand2 size={120} />
+                        </div>
+                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight relative z-10">KI-Optimierung</h4>
+                        <p className="text-[10px] text-indigo-500 font-black tracking-widest mb-8 relative z-10">Unterlagen auf dieses Unternehmen zuschneiden</p>
+
+                        <div className="flex gap-4 mb-8 relative z-10">
+                          <button
+                            onClick={() => { setTailorDocType('cv'); setTailoredText(''); }}
+                            className={clsx(
+                              "flex-1 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all border",
+                              tailorDocType === 'cv' ? "bg-indigo-600 border-indigo-500 text-white" : "glass border-black/5 dark:border-white/5 text-gray-500"
+                            )}
+                          >
+                            Lebenslauf (CV)
+                          </button>
+                          <button
+                            onClick={() => { setTailorDocType('letter'); setTailoredText(''); }}
+                            className={clsx(
+                              "flex-1 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all border",
+                              tailorDocType === 'letter' ? "bg-indigo-600 border-indigo-500 text-white" : "glass border-black/5 dark:border-white/5 text-gray-500"
+                            )}
+                          >
+                            Anschreiben
+                          </button>
+                        </div>
+
+                        {!tailoredText ? (
+                          <button
+                            onClick={handleTailor}
+                            disabled={isTailoring}
+                            className="w-full h-16 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-black text-[11px] tracking-[0.2em] rounded-2xl shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 relative z-10 uppercase"
+                          >
+                            {isTailoring ? (
+                              <>
+                                <Loader2 size={20} className="animate-spin" />
+                                Generiere Anpassung...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles size={18} />
+                                Jetzt mit KI anpassen
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="space-y-6 relative z-10">
+                            <div className="glass-card p-8 rounded-[2rem] border-white/10 bg-black/5 dark:bg-white/5 shadow-inner">
+                              <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase mb-6 block">Vorschau des optimierten Dokuments</label>
+                              <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium max-h-[40rem] overflow-y-auto custom-scrollbar pr-4 whitespace-pre-wrap selection:bg-indigo-500/30">
+                                {tailoredText}
+                              </div>
+                            </div>
+                            <div className="flex gap-4">
+                              <button
+                                onClick={() => setTailoredText('')}
+                                className="flex-1 h-14 glass text-gray-500 font-black text-[10px] tracking-widest rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-all uppercase"
+                              >
+                                Neu generieren
+                              </button>
+                              <button
+                                onClick={handleDownloadTailored}
+                                className="flex-1 h-14 bg-green-600 text-white font-black text-[10px] tracking-widest rounded-2xl shadow-lg shadow-green-500/20 hover:scale-105 transition-all flex items-center justify-center gap-3 uppercase"
+                              >
+                                <FileDown size={18} />
+                                PDF Download
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-6 bg-blue-500/5 rounded-3xl border border-blue-500/10">
+                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-2">💡 Tipp</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+                          Die KI nutzt deinen Master-Text aus den Einstellungen und optimiert ihn basierend auf den Anforderungen von <span className="text-blue-500 font-black">{selectedJob.company}</span>.
+                        </p>
                       </div>
                     </div>
                   )}

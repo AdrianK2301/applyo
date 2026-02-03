@@ -13,6 +13,7 @@ export interface Job {
   lastUpdate: string;
   nextStep?: string;
   date?: string; // Datum für Kalender-Events (z.B. Interviewtermin)
+  interviewDate?: string; // Dedicated field for interview scheduling
   notes?: string;
   prepTasks?: { text: string; completed: boolean }[];
   description?: string;
@@ -21,6 +22,7 @@ export interface Job {
   benefits?: string[];
   skills?: string[];
   contactPerson?: string;
+  contactInfo?: string;
 }
 
 export interface EmailTemplate {

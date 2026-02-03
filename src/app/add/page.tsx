@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, Link as LinkIcon, CheckCircle2, Loader2, Building2, MapPin, Target } from 'lucide-react';
+import { ArrowLeft, Sparkles, Link as LinkIcon, CheckCircle2, Loader2, Building2, MapPin, Target, User, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useJobs } from '@/app/hooks/useJobs';
 import { analyzeJob } from '@/app/actions/analyze-job';
@@ -29,7 +29,9 @@ export default function AddJobPage() {
     description: '',
     status: 'Merkliste' as const,
     priority: 'Medium' as const,
-    url: ''
+    url: '',
+    contactPerson: '',
+    contactInfo: ''
   });
 
   const handleAnalyze = async () => {
@@ -53,6 +55,8 @@ export default function AddJobPage() {
           company: result.data.company || '',
           location: result.data.location || '',
           description: result.data.description || '',
+          contactPerson: result.data.contact_person || '',
+          contactInfo: result.data.contact_info || '',
         });
         setStep(2);
       }
@@ -173,6 +177,8 @@ export default function AddJobPage() {
               </div>
               <Input label="Unternehmen / Firma" value={formData.company} onChange={(v: string) => setFormData({ ...formData, company: v })} placeholder="z.B. Innovate Tech GmbH" icon={Building2} required />
               <Input label="Standort / Ort" value={formData.location} onChange={(v: string) => setFormData({ ...formData, location: v })} placeholder="z.B. Berlin (Hybrid)" icon={MapPin} />
+              <Input label="Ansprechpartner" value={formData.contactPerson} onChange={(v: string) => setFormData({ ...formData, contactPerson: v })} placeholder="z.B. Maria Musterfrau" icon={User} />
+              <Input label="Kontaktinfo (E-Mail/Tel)" value={formData.contactInfo} onChange={(v: string) => setFormData({ ...formData, contactInfo: v })} placeholder="z.B. maria@company.com" icon={MessageSquare} />
 
               <div className="col-span-2 space-y-3">
                 <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Beschreibung / Notizen</label>

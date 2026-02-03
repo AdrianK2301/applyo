@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/app/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Settings, LogOut, ChevronDown, User } from 'lucide-react';
+import { Settings, LogOut, ChevronDown, User, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -76,6 +76,15 @@ export default function UserDropdown({ user }: UserDropdownProps) {
                         </div>
 
                         <div className="p-2 space-y-1">
+                            <Link
+                                href="/files"
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 rounded-2xl transition-all"
+                            >
+                                <FolderOpen size={16} className="text-indigo-500" />
+                                <span>Meine Dateien</span>
+                            </Link>
+
                             <Link
                                 href="/settings"
                                 onClick={() => setIsOpen(false)}

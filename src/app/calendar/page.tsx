@@ -73,8 +73,9 @@ export default function CalendarPage() {
 
   const getDayJobs = (d: number, m: number, y: number) => {
     return jobs.filter(job => {
-      if (!job.date) return false;
-      const jobDate = new Date(job.date);
+      const targetDate = job.interviewDate || job.date;
+      if (!targetDate) return false;
+      const jobDate = new Date(targetDate);
       return jobDate.getDate() === d && jobDate.getMonth() === m && jobDate.getFullYear() === y;
     });
   };

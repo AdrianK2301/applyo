@@ -72,10 +72,11 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                     prepTasks: prepTasks,
                     contactPerson: item.contact_person,
                     description: item.description,
-                    summary: item.summary,
                     requirements: item.requirements,
                     benefits: item.benefits,
-                    skills: item.skills
+                    skills: item.skills,
+                    interviewDate: item.interview_date,
+                    contactInfo: item.contact_info
                 };
             });
             setJobs(mappedJobs);
@@ -140,6 +141,8 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                 requirements: newJob.requirements,
                 benefits: newJob.benefits,
                 skills: newJob.skills,
+                interview_date: newJob.interviewDate,
+                contact_info: newJob.contactInfo,
                 last_update: new Date().toISOString().split('T')[0]
             }])
             .select()
@@ -173,6 +176,8 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                 requirements: updatedJob.requirements,
                 benefits: updatedJob.benefits,
                 skills: updatedJob.skills,
+                interview_date: updatedJob.interviewDate,
+                contact_info: updatedJob.contactInfo,
                 last_update: new Date().toISOString().split('T')[0]
             })
             .eq('id', updatedJob.id);
