@@ -22,9 +22,10 @@ const lora = Lora({ subsets: ['latin'] });
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  isCollapsed?: boolean;
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, isCollapsed = false }: SidebarProps) {
   const pathname = usePathname();
 
   const menuItems = [
@@ -45,10 +46,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       />
 
       <aside className={clsx(
-        "fixed lg:static inset-y-0 left-0 w-72 h-full glass transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-50 lg:translate-x-0 border-r border-white/10 flex flex-col pt-8 pb-12",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed lg:static inset-y-0 left-0 h-full glass transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-50 lg:translate-x-0 border-r border-white/10 flex flex-col overflow-hidden",
+        isOpen ? "translate-x-0" : "-translate-x-full",
+        isCollapsed ? "lg:w-0 lg:border-none" : "lg:w-72 lg:pt-8 lg:pb-12"
       )}>
-        <div className="flex items-center justify-between px-8 mb-16">
+        <div className={clsx("flex items-center justify-between px-8 mb-16", isCollapsed && "lg:opacity-0")}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
               <span className={`text-white font-bold text-xl italic tracking-tighter ${lora.className}`}>a</span>

@@ -5,7 +5,7 @@ import './globals.css';
 import { Inter, Lora } from 'next/font/google';
 import Sidebar from './components/Sidebar';
 import { useState, useEffect } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { ThemeProvider } from './providers';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/app/lib/supabase/client';
@@ -22,6 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const pathname = usePathname();
@@ -59,7 +60,7 @@ export default function RootLayout({
 
           {!isAuthPage && user ? (
             <>
-              <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+              <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isCollapsed={sidebarCollapsed} />
 
               <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
                 <header className="h-20 glass border-b border-white/10 flex items-center px-6 sm:px-12 justify-between shrink-0 z-20">
@@ -69,6 +70,14 @@ export default function RootLayout({
                       className="lg:hidden p-3 -ml-2 text-gray-500 hover:bg-white/10 rounded-2xl transition-all"
                     >
                       <Menu size={24} />
+                    </button>
+                    {/* Desktop Sidebar Toggle */}
+                    <button
+                      onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                      className="hidden lg:block p-3 -ml-2 text-gray-500 hover:bg-white/10 rounded-2xl transition-all"
+                      title={sidebarCollapsed ? "Sidebar anzeigen" : "Sidebar ausblenden"}
+                    >
+                      {sidebarCollapsed ? <PanelLeftOpen size={24} /> : <PanelLeftClose size={24} />}
                     </button>
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
                       {pathname === '/' ? 'Dashboard' :
