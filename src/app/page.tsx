@@ -6,6 +6,9 @@ import { Briefcase, Clock, AlertCircle, Calendar, ArrowRight } from 'lucide-reac
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Job } from '@/app/lib/data';
+import { useState } from 'react';
+import OnboardingModal from '@/app/components/OnboardingModal';
+import { Info } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,6 +31,7 @@ const itemVariants = {
 
 export default function Dashboard() {
   const { jobs, isLoaded } = useJobs();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   if (!isLoaded) return (
     <div className="flex items-center justify-center p-20 text-gray-400 font-medium font-mono text-sm tracking-widest uppercase">
@@ -84,6 +88,24 @@ export default function Dashboard() {
       className="space-y-12"
     >
       {/* Top Stats */}
+
+      {/* Onboarding Trigger */}
+      <div className="flex justify-end mb-4">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowOnboarding(true)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 transition-all border border-white/10 group"
+        >
+          <div className="bg-white/20 p-1 rounded-full">
+            <Info size={12} className="text-white" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest">Über applyo</span>
+        </motion.button>
+      </div>
+
+      <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <StatCard
           icon={Briefcase}
@@ -262,14 +284,7 @@ export default function Dashboard() {
             </Link>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] p-8 shadow-2xl shadow-blue-500/20 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
-            <h3 className="text-white font-black text-lg mb-2 relative z-10">Bereit für den nächsten Schritt?</h3>
-            <p className="text-blue-100 text-xs mb-6 font-medium relative z-10 opacity-80">Trage deine neue Bewerbung ein und behalte den Überblick.</p>
-            <Link href="/add" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all relative z-10">
-              Job hinzufügen
-            </Link>
-          </motion.div>
+
         </div>
       </div>
     </motion.div>

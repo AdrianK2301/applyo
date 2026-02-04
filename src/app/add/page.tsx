@@ -93,7 +93,7 @@ export default function AddJobPage() {
           <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">
             Job hinzufügen
           </h1>
-          <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-2">Automatisch importieren oder manuell erfassen</p>
+          <p className="text-[10px] font-black text-gray-500 tracking-[0.2em] mt-2">Automatisch importieren oder manuell erfassen</p>
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export default function AddJobPage() {
                 disabled={isLoading || !url}
                 className="h-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-10 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
               >
-                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <><Sparkles size={18} /> Analysieren</>}
+                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <> Analysieren</>}
               </button>
             </div>
 
@@ -148,7 +148,7 @@ export default function AddJobPage() {
             )}
 
             <div className="pt-10 border-t border-white/5 relative z-10">
-              <button onClick={() => setStep(2)} className="text-[10px] font-black text-gray-500 hover:text-white uppercase tracking-widest underline decoration-2 underline-offset-8 decoration-white/10 hover:decoration-blue-500 transition-all">Überspringen & manuell erfassen</button>
+              <button onClick={() => setStep(2)} className="text-[10px] font-black text-gray-500 hover:text-white tracking-widest underline decoration-2 underline-offset-8 decoration-white/10 hover:decoration-blue-500 transition-all">Überspringen & manuell erfassen</button>
             </div>
           </motion.div>
         ) : (
