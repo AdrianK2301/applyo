@@ -4,7 +4,7 @@ import { jsPDF } from 'jspdf';
  * Generates a simple PDF from text content.
  * This is a foundation for document tailoring.
  */
-export const generatePDF = async (title: string, content: string, fileName: string) => {
+export const generatePDF = async (title: string, content: string, fileName?: string) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -45,6 +45,10 @@ export const generatePDF = async (title: string, content: string, fileName: stri
         cursorY += lineHeight;
     }
 
-    // Save the PDF
-    doc.save(fileName);
+    // Save or Return
+    if (fileName) {
+        doc.save(fileName);
+    } else {
+        return doc.output('blob');
+    }
 };

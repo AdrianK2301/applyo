@@ -58,24 +58,52 @@ export default function ApplicationsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Job | null>(null);
 
+  const [sortedJobs, setSortedJobs] = useState<Job[]>([]);
+  const [filterStatus, setFilterStatus] = useState<Status | 'All'>('All');
+  const [filterPriority, setFilterPriority] = useState<Priority | 'All'>('All');
+  const [sortConfig, setSortConfig] = useState<{ key: 'company' | 'status' | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
+
+
   const [copiedTemplateId, setCopiedTemplateId] = useState<string | null>(null);
   const [expandedTemplateId, setExpandedTemplateId] = useState<string | null>(null);
 
-  if (!isLoaded) return (
-    <div className="flex items-center justify-center p-20 text-gray-400 font-medium font-mono text-sm tracking-widest uppercase">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        className="w-6 h-6 border-2 border-blue-600/20 border-t-blue-600 rounded-full mr-4"
-      />
-      Bewerbungen werden geladen...
-    </div>
-  );
+  useEffect(() => {
+    let result = jobs.filter(job => {
+      const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.company.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = filterStatus === 'All' || job.status === filterStatus;
+      const matchesPriority = filterPriority === 'All' || job.priority === filterPriority;
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
 
-  const filteredJobs = jobs.filter(job =>
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    if (sortConfig.key) {
+      result.sort((a, b) => {
+        let aValue: string = '';
+        let bValue: string = '';
+
+        if (sortConfig.key === 'company') {
+          aValue = a.company.toLowerCase();
+          bValue = b.company.toLowerCase();
+        } else if (sortConfig.key === 'status') {
+          aValue = a.status;
+          bValue = b.status;
+        }
+
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    setSortedJobs(result);
+  }, [jobs, searchQuery, filterStatus, filterPriority, sortConfig]);
+
+  const handleSort = (key: 'company' | 'status') => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   const handleOpenJob = (job: Job) => {
     setSelectedJob(job);
@@ -191,6 +219,17 @@ export default function ApplicationsPage() {
   const statuses: Status[] = ['Merkliste', 'In Arbeit', 'Beworben', 'Interview', 'Angebot', 'Absage'];
   const priorities: Priority[] = ['High', 'Medium', 'Low'];
 
+  if (!isLoaded) return (
+    <div className="flex items-center justify-center p-20 text-gray-400 font-medium font-mono text-sm tracking-widest uppercase">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        className="w-6 h-6 border-2 border-blue-600/20 border-t-blue-600 rounded-full mr-4"
+      />
+      Bewerbungen werden geladen...
+    </div>
+  );
+
   return (
     <div className="h-full flex flex-col gap-10">
       {/* Header Actions */}
@@ -204,6 +243,32 @@ export default function ApplicationsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-16 glass-card rounded-[1.5rem] border border-white/10 pl-14 pr-6 text-sm font-bold bg-transparent dark:text-white dark:border-white/5 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-gray-500"
           />
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-2">
+          <div className="relative group">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as Status | 'All')}
+              className="appearance-none h-16 pl-6 pr-10 glass-card rounded-[1.5rem] border border-white/10 text-xs font-black uppercase tracking-widest bg-transparent text-gray-500 dark:text-gray-400 focus:text-gray-900 dark:focus:text-white outline-none cursor-pointer hover:bg-white/5 transition-all"
+            >
+              <option value="All">Alle Status</option>
+              {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <Filter size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+          <div className="relative group">
+            <select
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value as Priority | 'All')}
+              className="appearance-none h-16 pl-6 pr-10 glass-card rounded-[1.5rem] border border-white/10 text-xs font-black uppercase tracking-widest bg-transparent text-gray-500 dark:text-gray-400 focus:text-gray-900 dark:focus:text-white outline-none cursor-pointer hover:bg-white/5 transition-all"
+            >
+              <option value="All">Priorität</option>
+              {priorities.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <Filter size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
         </div>
 
         <div className="flex items-center gap-3 glass p-2 rounded-[1.5rem] border border-white/10 shrink-0">
@@ -255,15 +320,35 @@ export default function ApplicationsPage() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b border-white/5">
-                      <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Position & Firma</th>
-                      <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
+                      <th
+                        className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] cursor-pointer hover:text-white transition-colors group select-none"
+                        onClick={() => handleSort('company')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Position & Firma
+                          {sortConfig.key === 'company' && (
+                            <ArrowRight size={12} className={clsx("transition-transform", sortConfig.direction === 'desc' ? 'rotate-90' : '-rotate-90')} />
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] cursor-pointer hover:text-white transition-colors group select-none"
+                        onClick={() => handleSort('status')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Status
+                          {sortConfig.key === 'status' && (
+                            <ArrowRight size={12} className={clsx("transition-transform", sortConfig.direction === 'desc' ? 'rotate-90' : '-rotate-90')} />
+                          )}
+                        </div>
+                      </th>
                       <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Priorität</th>
                       <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Aktualisiert</th>
                       <th className="px-8 py-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Aktionen</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredJobs.length > 0 ? filteredJobs.map((job) => (
+                    {sortedJobs.length > 0 ? sortedJobs.map((job) => (
                       <motion.tr
                         layout
                         initial={{ opacity: 0 }}
@@ -325,7 +410,7 @@ export default function ApplicationsPage() {
               exit={{ opacity: 0, scale: 0.98 }}
               className="h-full"
             >
-              <KanbanBoard jobs={filteredJobs} onJobClick={handleOpenJob} />
+              <KanbanBoard jobs={sortedJobs} onJobClick={handleOpenJob} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -846,7 +931,13 @@ export default function ApplicationsPage() {
                   )}
 
                   {activeTab === 'send' && (
-                    <SendTab job={selectedJob} user={user} templates={templates} />
+                    <SendTab
+                      job={selectedJob}
+                      user={user}
+                      templates={templates}
+                      tailoredText={tailoredText}
+                      tailorDocType={tailorDocType}
+                    />
                   )}
                 </div>
               </div>
@@ -900,14 +991,68 @@ export default function ApplicationsPage() {
   );
 }
 
-function SendTab({ job, user, templates }: { job: Job; user: SupabaseUser | null; templates: EmailTemplate[] }) {
+function SendTab({
+  job,
+  user,
+  templates,
+  tailoredText,
+  tailorDocType
+}: {
+  job: Job;
+  user: SupabaseUser | null;
+  templates: EmailTemplate[];
+  tailoredText: string;
+  tailorDocType: 'cv' | 'letter';
+}) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [attachments, setAttachments] = useState<{ cv: boolean; letter: boolean }>({ cv: false, letter: false });
   const [isSent, setIsSent] = useState(false);
 
-  // Auto-fill body when template changes
+  // Asset Source Management
+  const hasMasterCv = !!user?.user_metadata?.cv_url;
+  const hasMasterLetter = !!user?.user_metadata?.letter_url;
+  const hasTailoredCv = !!tailoredText && tailorDocType === 'cv';
+  const hasTailoredLetter = !!tailoredText && tailorDocType === 'letter';
+
+  const [cvSource, setCvSource] = useState<'master' | 'tailored'>(hasTailoredCv ? 'tailored' : 'master');
+  const [letterSource, setLetterSource] = useState<'master' | 'tailored'>(hasTailoredLetter ? 'tailored' : 'master');
+
+  const [tailoredPdfUrl, setTailoredPdfUrl] = useState<string | null>(null);
+
+  // 1. Generate PDF Blob if tailored text exists
+  // 1. Generate PDF Blob if tailored text exists
+  useEffect(() => {
+    async function createPdf() {
+      if (tailoredText) {
+        const blob = await generatePDF('Optimiertes Dokument', tailoredText);
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          setTailoredPdfUrl(url);
+        }
+      } else {
+        setTailoredPdfUrl(null);
+      }
+    }
+    createPdf();
+
+    // Cleanup to prevent memory leaks
+    return () => {
+      if (tailoredPdfUrl) URL.revokeObjectURL(tailoredPdfUrl);
+    };
+  }, [tailoredText]);
+
+  // Update defaults if availability changes
+  useEffect(() => {
+    if (hasTailoredCv) setCvSource('tailored');
+    else if (hasMasterCv) setCvSource('master');
+
+    if (hasTailoredLetter) setLetterSource('tailored');
+    else if (hasMasterLetter) setLetterSource('master');
+  }, [hasTailoredCv, hasMasterCv, hasTailoredLetter, hasMasterLetter]);
+
+  // Auto-fill body
   useEffect(() => {
     if (selectedTemplateId) {
       const template = templates.find(t => t.id === selectedTemplateId);
@@ -925,16 +1070,27 @@ function SendTab({ job, user, templates }: { job: Job; user: SupabaseUser | null
     }
   }, [selectedTemplateId, templates, job, user]);
 
+  const { updateJob } = useJobs();
+  const [showStatusConfirm, setShowStatusConfirm] = useState(false);
+
   const handleSend = () => {
-    // 1. Create mailto link
-    // Note: We CANNOT attach files via mailto. We just open the mail.
     const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoLink;
     setIsSent(true);
+
+    // Check if user wants to be prompted for status update
+    if (user?.user_metadata?.send_status_prompt) {
+      setTimeout(() => setShowStatusConfirm(true), 500);
+    }
   };
 
-  const hasCv = !!user?.user_metadata?.cv_url;
-  const hasLetter = !!user?.user_metadata?.letter_url;
+  const handleConfirmStatusUpdate = async () => {
+    await updateJob({ ...job, status: 'Beworben' as any });
+    setShowStatusConfirm(false);
+  };
+
+  const hasCv = hasMasterCv || hasTailoredCv;
+  const hasLetter = hasMasterLetter || hasTailoredLetter;
 
   return (
     <div className="space-y-8">
@@ -948,7 +1104,7 @@ function SendTab({ job, user, templates }: { job: Job; user: SupabaseUser | null
         <div className="space-y-6 relative z-10">
           {/* Template Selection */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase">Vorlage wählen</label>
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Vorlage wählen</label>
             <select
               value={selectedTemplateId}
               onChange={(e) => setSelectedTemplateId(e.target.value)}
@@ -963,7 +1119,7 @@ function SendTab({ job, user, templates }: { job: Job; user: SupabaseUser | null
 
           {/* Subject */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase">Betreff</label>
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Betreff</label>
             <input
               type="text"
               value={subject}
@@ -975,7 +1131,7 @@ function SendTab({ job, user, templates }: { job: Job; user: SupabaseUser | null
 
           {/* Body */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase">Nachricht</label>
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Nachricht</label>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -986,37 +1142,56 @@ function SendTab({ job, user, templates }: { job: Job; user: SupabaseUser | null
 
           {/* Attachments Selection */}
           <div className="space-y-4 pt-4 border-t border-black/5 dark:border-white/5">
-            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase">Anhänge planen</label>
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Anhänge planen</label>
             <div className="flex gap-4">
-              <button
-                onClick={() => hasCv && setAttachments(p => ({ ...p, cv: !p.cv }))}
-                className={clsx(
-                  "flex-1 p-4 rounded-2xl border text-left transition-all",
-                  attachments.cv ? "bg-emerald-500/10 border-emerald-500 text-emerald-600" : "glass border-black/5 dark:border-white/5 text-gray-400",
-                  !hasCv && "opacity-50 cursor-not-allowed"
+              {/* CV Button & Selector */}
+              <div className="flex-1 space-y-2">
+                <button
+                  onClick={() => hasCv && setAttachments(p => ({ ...p, cv: !p.cv }))}
+                  className={clsx(
+                    "w-full p-4 rounded-2xl border text-left transition-all",
+                    attachments.cv ? "bg-emerald-500/10 border-emerald-500 text-emerald-600" : "glass border-black/5 dark:border-white/5 text-gray-400",
+                    !hasCv && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <p className="text-[10px] font-black tracking-widest mb-1">Lebenslauf</p>
+                  <p className="text-xs font-bold">{hasCv ? (cvSource === 'tailored' ? 'KI-Optimierte Version' : 'Master Version') : 'Nicht gefunden'}</p>
+                </button>
+                {hasMasterCv && hasTailoredCv && attachments.cv && (
+                  <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                    <button onClick={() => setCvSource('master')} className={clsx("flex-1 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all", cvSource === 'master' ? "bg-white dark:bg-gray-800 shadow text-gray-900 dark:text-white" : "text-gray-400")}>Master</button>
+                    <button onClick={() => setCvSource('tailored')} className={clsx("flex-1 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all", cvSource === 'tailored' ? "bg-white dark:bg-gray-800 shadow text-indigo-600" : "text-gray-400")}>KI-Neu</button>
+                  </div>
                 )}
-              >
-                <p className="text-[10px] font-black tracking-widest uppercase mb-1">Lebenslauf</p>
-                <p className="text-xs font-bold">{hasCv ? 'Verfügbar' : 'Nicht gefunden'}</p>
-              </button>
-              <button
-                onClick={() => hasLetter && setAttachments(p => ({ ...p, letter: !p.letter }))}
-                className={clsx(
-                  "flex-1 p-4 rounded-2xl border text-left transition-all",
-                  attachments.letter ? "bg-emerald-500/10 border-emerald-500 text-emerald-600" : "glass border-black/5 dark:border-white/5 text-gray-400",
-                  !hasLetter && "opacity-50 cursor-not-allowed"
+              </div>
+
+              {/* Letter Button & Selector */}
+              <div className="flex-1 space-y-2">
+                <button
+                  onClick={() => hasLetter && setAttachments(p => ({ ...p, letter: !p.letter }))}
+                  className={clsx(
+                    "w-full p-4 rounded-2xl border text-left transition-all",
+                    attachments.letter ? "bg-emerald-500/10 border-emerald-500 text-emerald-600" : "glass border-black/5 dark:border-white/5 text-gray-400",
+                    !hasLetter && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <p className="text-[10px] font-black tracking-widest mb-1">Anschreiben</p>
+                  <p className="text-xs font-bold">{hasLetter ? (letterSource === 'tailored' ? 'KI-Optimierte Version' : 'Master Version') : 'Nicht gefunden'}</p>
+                </button>
+                {hasMasterLetter && hasTailoredLetter && attachments.letter && (
+                  <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                    <button onClick={() => setLetterSource('master')} className={clsx("flex-1 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all", letterSource === 'master' ? "bg-white dark:bg-gray-800 shadow text-gray-900 dark:text-white" : "text-gray-400")}>Master</button>
+                    <button onClick={() => setLetterSource('tailored')} className={clsx("flex-1 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all", letterSource === 'tailored' ? "bg-white dark:bg-gray-800 shadow text-indigo-600" : "text-gray-400")}>KI-Neu</button>
+                  </div>
                 )}
-              >
-                <p className="text-[10px] font-black tracking-widest uppercase mb-1">Anschreiben</p>
-                <p className="text-xs font-bold">{hasLetter ? 'Verfügbar' : 'Nicht gefunden'}</p>
-              </button>
+              </div>
             </div>
           </div>
 
           {/* Send Button */}
           <button
             onClick={handleSend}
-            className="w-full py-4 bg-emerald-600 text-white font-black text-[10px] tracking-widest rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 uppercase"
+            className="w-full py-4 bg-emerald-600 text-white font-black text-[10px] tracking-widest rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             <Send size={16} />
             E-Mail Programm öffnen
@@ -1040,31 +1215,58 @@ function SendTab({ job, user, templates }: { job: Job; user: SupabaseUser | null
           <div className="grid grid-cols-1 gap-3">
             {attachments.cv && hasCv && (
               <a
-                href={user?.user_metadata?.cv_url}
-                download
+                href={cvSource === 'tailored' ? (tailoredPdfUrl || '#') : (user?.user_metadata?.cv_url || '#')}
+                download={cvSource === 'tailored' ? 'Lebenslauf_Optimiert.pdf' : 'Lebenslauf.pdf'}
                 target="_blank"
                 className="flex items-center gap-4 p-4 glass bg-black/5 dark:bg-white/5 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-600 transition-all border border-transparent group/file"
               >
-                <FileText size={20} />
-                <span className="font-bold text-sm">Lebenslauf.pdf</span>
+                <FileText size={20} className={cvSource === 'tailored' ? 'text-indigo-500' : ''} />
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm">Lebenslauf.pdf</span>
+                  {cvSource === 'tailored' && <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">KI-Optimiert</span>}
+                </div>
                 <span className="ml-auto text-[10px] font-black uppercase tracking-widest opacity-0 group-hover/file:opacity-100 transition-opacity">Download</span>
               </a>
             )}
             {attachments.letter && hasLetter && (
               <a
-                href={user?.user_metadata?.letter_url}
-                download
+                href={letterSource === 'tailored' ? (tailoredPdfUrl || '#') : (user?.user_metadata?.letter_url || '#')}
+                download={letterSource === 'tailored' ? 'Anschreiben_Optimiert.pdf' : 'Anschreiben.pdf'}
                 target="_blank"
                 className="flex items-center gap-4 p-4 glass bg-black/5 dark:bg-white/5 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-600 transition-all border border-transparent group/file"
               >
-                <FileText size={20} />
-                <span className="font-bold text-sm">Anschreiben.pdf</span>
+                <FileText size={20} className={letterSource === 'tailored' ? 'text-indigo-500' : ''} />
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm">Anschreiben.pdf</span>
+                  {letterSource === 'tailored' && <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">KI-Optimiert</span>}
+                </div>
                 <span className="ml-auto text-[10px] font-black uppercase tracking-widest opacity-0 group-hover/file:opacity-100 transition-opacity">Download</span>
               </a>
             )}
           </div>
         </div>
       )}
+
+      {/* Status Confirmation Modal */}
+      <AnimatePresence>
+        {showStatusConfirm && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 dark:bg-slate-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl border border-white/10">
+              <div className="flex justify-center mb-6 text-blue-500 bg-blue-500/10 w-16 h-16 rounded-full items-center mx-auto">
+                <MapPin size={32} />
+              </div>
+              <h3 className="text-xl font-black text-center text-gray-900 dark:text-white mb-2">Status aktualisieren?</h3>
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+                Möchtest du den Status dieser Bewerbung direkt auf <span className="text-blue-500 font-bold">"Beworben"</span> setzen?
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowStatusConfirm(false)} className="flex-1 py-3 bg-gray-100 dark:bg-white/5 rounded-xl text-xs font-black uppercase tracking-widest text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all">Nein, lassen</button>
+                <button onClick={handleConfirmStatusUpdate} className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:scale-105 transition-all">Ja, ändern</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

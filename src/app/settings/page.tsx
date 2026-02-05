@@ -6,7 +6,7 @@ import {
   Bell, LogOut, Save, CheckCircle2, User, Mail, Lock,
   Download, Briefcase, FileText,
   Smartphone, ShieldAlert, Camera, Loader2,
-  X
+  X, MessageSquare
 } from 'lucide-react';
 import { createClient } from '@/app/lib/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -37,6 +37,7 @@ export default function SettingsPage() {
 
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [sendStatusPrompt, setSendStatusPrompt] = useState(false);
 
   const supabase = createClient();
   const router = useRouter();
@@ -63,6 +64,7 @@ export default function SettingsPage() {
           followUpDays: user.user_metadata?.follow_up_days || '14',
           avatarUrl: user.user_metadata?.avatar_url || ''
         });
+        setSendStatusPrompt(user.user_metadata?.send_status_prompt || false);
       }
       setLoading(false);
     }
@@ -120,6 +122,21 @@ export default function SettingsPage() {
       setError(err instanceof Error ? err.message : 'Fehler beim Upload.');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleToggleSendPrompt = async () => {
+    const newValue = !sendStatusPrompt;
+    setSendStatusPrompt(newValue);
+    // Optimistic update
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { send_status_prompt: newValue }
+      });
+      if (error) throw error;
+    } catch (err) {
+      setSendStatusPrompt(!newValue); // Revert
+      setError('Fehler beim Speichern der Einstellung');
     }
   };
 
@@ -289,9 +306,30 @@ export default function SettingsPage() {
               {activeTab === 'notifications' && (
                 <div className="space-y-8">
                   <Card title="Alarme & Benachrichtigungen" icon={Bell}>
-                    <div className="space-y-6">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Verwalte hier deine Benachrichtigungs-Präferenzen.</p>
-                      {/* Hier können später Schalter hinzugefügt werden */}
+                    <div className="space-y-8">
+                      <div className="flex items-center justify-between p-6 glass-card rounded-3xl border-black/5 dark:border-white/5">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-indigo-600/10 text-indigo-600 rounded-2xl">
+                            <MessageSquare size={24} />
+                          </div>
+                          <div>
+                            <h4 className="font-black text-sm text-gray-900 dark:text-white">Status-Update abfragen</h4>
+                            <p className="text-[10px] text-gray-500 font-bold tracking-widest mt-1">Nach dem Senden fragen, ob der Status auf "Beworben" gesetzt werden soll.</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleToggleSendPrompt}
+                          className={clsx(
+                            "w-14 h-8 rounded-full p-1 transition-all duration-300",
+                            sendStatusPrompt ? "bg-emerald-500" : "bg-gray-200 dark:bg-gray-700"
+                          )}
+                        >
+                          <div className={clsx(
+                            "w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300",
+                            sendStatusPrompt ? "translate-x-6" : "translate-x-0"
+                          )} />
+                        </button>
+                      </div>
                     </div>
                   </Card>
                 </div>
