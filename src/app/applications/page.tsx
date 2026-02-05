@@ -37,6 +37,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Job, Status } from '@/app/lib/data';
 import KanbanBoard from '@/app/components/KanbanBoard';
 
+import * as XLSX from 'xlsx';
+
 type ViewType = 'list' | 'kanban';
 type Priority = 'High' | 'Medium' | 'Low';
 
@@ -144,6 +146,31 @@ export default function ApplicationsPage() {
     }
   };
 
+  const handleExportExcel = () => {
+    const exportData = jobs.map(job => ({
+      Titel: job.title,
+      Firma: job.company,
+      Ort: job.location,
+      Status: job.status,
+      Priorität: job.priority,
+      Zusammenfassung: job.summary || '',
+      Anforderungen: job.requirements?.join(', ') || '',
+      Aufgaben: job.tasks?.join(', ') || '',
+      Benefits: job.benefits?.join(', ') || '',
+      'Letztes Update': new Date(job.lastUpdate).toLocaleDateString(),
+      'Nächster Schritt': job.nextStep || '',
+      'Interview Datum': job.interviewDate ? new Date(job.interviewDate).toLocaleDateString() : '',
+      Ansprechpartner: job.contactPerson || '',
+      Kontakt: job.contactInfo || '',
+      Notizen: job.notes || '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Bewerbungen");
+    XLSX.writeFile(wb, "applyo_bewerbungen.xlsx");
+  };
+
   const handleDownloadTailored = () => {
     if (!tailoredText || !selectedJob) return;
     const typeLabel = tailorDocType === 'cv' ? 'Lebenslauf' : 'Anschreiben';
@@ -205,6 +232,16 @@ export default function ApplicationsPage() {
           >
             <LayoutGrid size={18} />
             <span>Kanban</span>
+          </button>
+
+          <div className="w-px h-6 bg-white/10 mx-2" />
+
+          <button
+            onClick={handleExportExcel}
+            className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+            title="Als Excel exportieren"
+          >
+            <FileDown size={18} />
           </button>
         </div>
       </div>
@@ -542,6 +579,20 @@ export default function ApplicationsPage() {
                                 </div>
                               ))}
                             </div>
+                          </div>
+                        )}
+
+                        {((selectedJob.tasks?.length ?? 0) > 0 || isEditing) && (
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Aufgaben</label>
+                            <ul className="space-y-2">
+                              {(isEditing ? (editFormData?.tasks || []) : (selectedJob.tasks || [])).map((task, i) => (
+                                <li key={i} className="flex items-start gap-3 p-3 rounded-xl bg-black/5 dark:bg-white/5 text-xs text-gray-700 dark:text-gray-200">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                                  <span>{task}</span>
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         )}
 

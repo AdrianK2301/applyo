@@ -20,6 +20,7 @@ export interface Job {
   summary?: string;
   requirements?: string[];
   benefits?: string[];
+  tasks?: string[];
   skills?: string[];
   contactPerson?: string;
   contactInfo?: string;

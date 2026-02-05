@@ -68,15 +68,18 @@ export async function analyzeJob(url: string) {
       Return ONLY valid JSON.
       Do not wrap it in markdown block quotes.
       
+      Extract the following fields. If a field is not found or not explicitly named in the text, leave it as null or an empty array.
+      
       Required Fields:
       - title (string): Job title
       - company (string): Company name
       - location (string): Job location
-      - description (string): Raw full description or summary
-      - summary (string): A short 2-3 sentence executive summary
-      - requirements (array of strings): List of job requirements
-      - benefits (array of strings): List of benefits/perks
-      - skills (array of strings): List of required tech stack/skills
+      - description (string): General description of the role and the company. Do NOT include requirements, tasks, or benefits here.
+      - summary (string): A short 2-3 sentence executive summary of the position.
+      - requirements (array of strings): List of requirements, skills, and qualifications expected from the applicant.
+      - benefits (array of strings): List of what the company offers (salary, perks, culture, etc.).
+      - tasks (array of strings): List of responsibilities and daily tasks associated with the job.
+      - skills (array of strings): List of specific technologies or hard skills mentioned (e.g., React, Python, English).
       - contact_person (string): Name of the recruiter or hiring manager if found
       - contact_info (string): Email or phone number of the contact person if found
       

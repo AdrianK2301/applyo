@@ -27,6 +27,10 @@ export default function AddJobPage() {
     company: '',
     location: '',
     description: '',
+    summary: '',
+    tasks: [] as string[],
+    requirements: [] as string[],
+    benefits: [] as string[],
     status: 'Merkliste' as const,
     priority: 'Medium' as const,
     url: '',
@@ -55,6 +59,10 @@ export default function AddJobPage() {
           company: result.data.company || '',
           location: result.data.location || '',
           description: result.data.description || '',
+          summary: result.data.summary || '',
+          tasks: result.data.tasks || [],
+          requirements: result.data.requirements || [],
+          benefits: result.data.benefits || [],
           contactPerson: result.data.contact_person || '',
           contactInfo: result.data.contact_info || '',
         });
@@ -181,12 +189,42 @@ export default function AddJobPage() {
               <Input label="Kontaktinfo (E-Mail/Tel)" value={formData.contactInfo} onChange={(v: string) => setFormData({ ...formData, contactInfo: v })} placeholder="z.B. maria@company.com" icon={MessageSquare} />
 
               <div className="col-span-2 space-y-3">
-                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Beschreibung / Notizen</label>
+                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Zusammenfassung</label>
+                <textarea
+                  className="w-full h-24 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl p-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-gray-600 resize-none"
+                  placeholder="Kompakte Zusammenfassung der Stelle..."
+                  value={formData.summary}
+                  onChange={e => setFormData({ ...formData, summary: e.target.value })}
+                />
+              </div>
+
+              <div className="col-span-2 space-y-3">
+                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Aufgaben</label>
                 <textarea
                   className="w-full h-32 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl p-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-gray-600 resize-none"
-                  placeholder="Kurze Beschreibung oder wichtige Notizen..."
-                  value={formData.description}
-                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Aufgaben eingeben..."
+                  value={formData.tasks.join('\n')}
+                  onChange={e => setFormData({ ...formData, tasks: e.target.value.split('\n') })}
+                />
+              </div>
+
+              <div className="col-span-2 space-y-3">
+                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Anforderungen</label>
+                <textarea
+                  className="w-full h-32 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl p-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-gray-600 resize-none"
+                  placeholder="Anforderungen eingeben..."
+                  value={formData.requirements.join('\n')}
+                  onChange={e => setFormData({ ...formData, requirements: e.target.value.split('\n') })}
+                />
+              </div>
+
+              <div className="col-span-2 space-y-3">
+                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Benefits</label>
+                <textarea
+                  className="w-full h-32 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl p-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all placeholder:text-gray-600 resize-none"
+                  placeholder="Benefits eingeben..."
+                  value={formData.benefits.join('\n')}
+                  onChange={e => setFormData({ ...formData, benefits: e.target.value.split('\n') })}
                 />
               </div>
 
