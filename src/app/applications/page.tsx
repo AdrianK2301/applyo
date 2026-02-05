@@ -1,7 +1,7 @@
 // src/app/applications/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useJobs } from '@/app/hooks/useJobs';
 import {
   Search,
@@ -28,14 +28,17 @@ import {
   Wand2,
   Sparkles,
   FileDown,
-  Loader2
+  Loader2,
+  Send,
+  FileText
 } from 'lucide-react';
 import { tailorDocument } from '@/app/actions/tailor-document';
 import { generatePDF } from '@/app/lib/pdf';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Job, Status } from '@/app/lib/data';
+import { Job, Status, EmailTemplate } from '@/app/lib/data';
 import KanbanBoard from '@/app/components/KanbanBoard';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 import * as XLSX from 'xlsx';
 
@@ -48,13 +51,15 @@ export default function ApplicationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'prep' | 'tailor'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'prep' | 'tailor' | 'send'>('details');
   const [isTailoring, setIsTailoring] = useState(false);
   const [tailorDocType, setTailorDocType] = useState<'cv' | 'letter'>('letter');
   const [tailoredText, setTailoredText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Job | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const [copiedTemplateId, setCopiedTemplateId] = useState<string | null>(null);
+  const [expandedTemplateId, setExpandedTemplateId] = useState<string | null>(null);
 
   if (!isLoaded) return (
     <div className="flex items-center justify-center p-20 text-gray-400 font-medium font-mono text-sm tracking-widest uppercase">
@@ -88,21 +93,10 @@ export default function ApplicationsPage() {
     }
   };
 
-  const handleCopyTemplate = (templateBody: string, job: Job) => {
-    const userName = user?.user_metadata?.full_name || 'Bewerber';
-    const contactName = job.contactPerson || 'Ansprechpartner';
-
-    let text = templateBody
-      .replace(/{company}/g, job.company)
-      .replace(/{job_title}/g, job.title)
-      .replace(/{location}/g, job.location || 'Remote')
-      .replace(/{date}/g, new Date().toLocaleDateString('de-DE'))
-      .replace(/{contact_name}/g, contactName)
-      .replace(/{user_name}/g, userName);
-
+  const handleCopyTemplate = (text: string, templateId: string) => {
     navigator.clipboard.writeText(text);
-    setCopiedId(job.id);
-    setTimeout(() => setCopiedId(null), 2000);
+    setCopiedTemplateId(templateId);
+    setTimeout(() => setCopiedTemplateId(null), 2000);
   };
 
   const toggleTask = async (job: Job, taskIndex: number) => {
@@ -421,8 +415,18 @@ export default function ApplicationsPage() {
                     activeTab === 'tailor' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-
+                  <Sparkles size={14} />
                   KI-Anpassung
+                </button>
+                <button
+                  onClick={() => setActiveTab('send')}
+                  className={clsx(
+                    "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center gap-2",
+                    activeTab === 'send' ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  <Send size={14} />
+                  Senden
                 </button>
               </div>
 
@@ -630,29 +634,90 @@ export default function ApplicationsPage() {
                       <div className="space-y-6">
                         <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em]">Schnell-Briefe (Vorlagen)</label>
                         <div className="grid grid-cols-1 gap-4">
-                          {templates.length > 0 ? templates.map(t => (
-                            <button
-                              key={t.id}
-                              onClick={() => handleCopyTemplate(t.body, selectedJob)}
-                              className="group flex items-center justify-between p-6 glass border border-black/5 dark:border-white/5 rounded-[1.8rem] hover:bg-black/5 dark:hover:bg-white/5 hover:border-blue-500/30 transition-all text-left"
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className="p-3 bg-blue-600/10 text-blue-500 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                                  <Copy size={18} />
-                                </div>
-                                <div>
-                                  <p className="text-xs font-black text-gray-800 dark:text-gray-100 tracking-tight">{t.name}</p>
-                                  <p className="text-[9px] text-gray-400 dark:text-gray-500 tracking-widest mt-0.5">Kopieren & Ausfüllen</p>
-                                </div>
+                          {templates.length > 0 ? templates.map(t => {
+                            const processedText = t.body
+                              .replace(/{company}/g, selectedJob.company)
+                              .replace(/{job_title}/g, selectedJob.title)
+                              .replace(/{location}/g, selectedJob.location || 'Remote')
+                              .replace(/{date}/g, new Date().toLocaleDateString('de-DE'))
+                              .replace(/{contact_name}/g, selectedJob.contactPerson || 'Ansprechpartner')
+                              .replace(/{user_name}/g, user?.user_metadata?.full_name || 'Bewerber');
+
+                            const isExpanded = expandedTemplateId === t.id;
+
+                            return (
+                              <div
+                                key={t.id}
+                                className="glass border border-black/5 dark:border-white/5 rounded-[1.8rem] overflow-hidden transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                              >
+                                <button
+                                  onClick={() => setExpandedTemplateId(isExpanded ? null : t.id)}
+                                  className="w-full flex items-center justify-between p-6 text-left"
+                                >
+                                  <div className="flex items-center gap-4">
+                                    <div className={clsx(
+                                      "p-3 rounded-xl transition-all shadow-sm",
+                                      isExpanded ? "bg-blue-600 text-white" : "bg-blue-600/10 text-blue-500"
+                                    )}>
+                                      <MessageSquare size={18} />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-black text-gray-800 dark:text-gray-100 tracking-tight">{t.name}</p>
+                                      <p className="text-[9px] text-gray-400 dark:text-gray-500 tracking-widest mt-0.5">{isExpanded ? 'Klicken zum Einklappen' : 'Klicken zum Anzeigen & Kopieren'}</p>
+                                    </div>
+                                  </div>
+                                  <ChevronRight size={18} className={clsx(
+                                    "text-gray-400 dark:text-gray-500 transition-transform duration-300",
+                                    isExpanded && "rotate-90"
+                                  )} />
+                                </button>
+
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="px-6 pb-6 pt-0 space-y-4">
+                                        <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 cursor-text select-text">
+                                          <p className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap font-medium leading-relaxed font-mono">
+                                            {processedText}
+                                          </p>
+                                        </div>
+
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCopyTemplate(processedText, t.id);
+                                          }}
+                                          className={clsx(
+                                            "w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all",
+                                            copiedTemplateId === t.id
+                                              ? "bg-green-500 text-white shadow-lg shadow-green-500/20"
+                                              : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg hover:scale-[1.02] active:scale-95"
+                                          )}
+                                        >
+                                          {copiedTemplateId === t.id ? (
+                                            <>
+                                              <CheckCircle2 size={14} />
+                                              Kopiert!
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Copy size={14} />
+                                              Text kopieren
+                                            </>
+                                          )}
+                                        </button>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
-                              {copiedId === selectedJob.id && (
-                                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-2 text-green-500 text-[10px] font-black">
-                                  <CheckCircle2 size={16} /> Kopiert
-                                </motion.div>
-                              )}
-                              <ArrowRight size={18} className="text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
-                            </button>
-                          )) : (
+                            );
+                          }) : (
                             <p className="text-xs text-gray-500 italic p-4">Keine Vorlagen gefunden. Erstelle welche in den Einstellungen.</p>
                           )}
                         </div>
@@ -779,6 +844,10 @@ export default function ApplicationsPage() {
                       </div>
                     </div>
                   )}
+
+                  {activeTab === 'send' && (
+                    <SendTab job={selectedJob} user={user} templates={templates} />
+                  )}
                 </div>
               </div>
 
@@ -827,6 +896,175 @@ export default function ApplicationsPage() {
           </>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function SendTab({ job, user, templates }: { job: Job; user: SupabaseUser | null; templates: EmailTemplate[] }) {
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [attachments, setAttachments] = useState<{ cv: boolean; letter: boolean }>({ cv: false, letter: false });
+  const [isSent, setIsSent] = useState(false);
+
+  // Auto-fill body when template changes
+  useEffect(() => {
+    if (selectedTemplateId) {
+      const template = templates.find(t => t.id === selectedTemplateId);
+      if (template) {
+        setSubject(template.subject);
+        const processed = template.body
+          .replace(/{company}/g, job.company)
+          .replace(/{job_title}/g, job.title)
+          .replace(/{location}/g, job.location || 'Remote')
+          .replace(/{date}/g, new Date().toLocaleDateString('de-DE'))
+          .replace(/{contact_name}/g, job.contactPerson || 'Ansprechpartner')
+          .replace(/{user_name}/g, user?.user_metadata?.full_name || 'Bewerber');
+        setBody(processed);
+      }
+    }
+  }, [selectedTemplateId, templates, job, user]);
+
+  const handleSend = () => {
+    // 1. Create mailto link
+    // Note: We CANNOT attach files via mailto. We just open the mail.
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+    setIsSent(true);
+  };
+
+  const hasCv = !!user?.user_metadata?.cv_url;
+  const hasLetter = !!user?.user_metadata?.letter_url;
+
+  return (
+    <div className="space-y-8">
+      <div className="p-8 glass-card border-emerald-500/20 bg-emerald-600/5 rounded-[2.5rem] relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 text-emerald-500/10 group-hover:text-emerald-500/20 transition-all">
+          <Send size={120} />
+        </div>
+        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight relative z-10">Bewerbung versenden</h4>
+        <p className="text-[10px] text-emerald-500 font-black tracking-widest mb-8 relative z-10">E-Mail vorbereiten & Unterlagen anhängen</p>
+
+        <div className="space-y-6 relative z-10">
+          {/* Template Selection */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase">Vorlage wählen</label>
+            <select
+              value={selectedTemplateId}
+              onChange={(e) => setSelectedTemplateId(e.target.value)}
+              className="w-full glass bg-white/50 dark:bg-black/20 border-white/20 rounded-xl p-3 text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="">-- Keine Vorlage --</option>
+              {templates.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Subject */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase">Betreff</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full glass bg-transparent border-black/10 dark:border-white/10 rounded-xl p-3 text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Bewerbung als..."
+            />
+          </div>
+
+          {/* Body */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase">Nachricht</label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              className="w-full h-40 glass bg-transparent border-black/10 dark:border-white/10 rounded-xl p-4 text-sm font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500 resize-none custom-scrollbar"
+              placeholder="Sehr geehrte Damen und Herren..."
+            />
+          </div>
+
+          {/* Attachments Selection */}
+          <div className="space-y-4 pt-4 border-t border-black/5 dark:border-white/5">
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase">Anhänge planen</label>
+            <div className="flex gap-4">
+              <button
+                onClick={() => hasCv && setAttachments(p => ({ ...p, cv: !p.cv }))}
+                className={clsx(
+                  "flex-1 p-4 rounded-2xl border text-left transition-all",
+                  attachments.cv ? "bg-emerald-500/10 border-emerald-500 text-emerald-600" : "glass border-black/5 dark:border-white/5 text-gray-400",
+                  !hasCv && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                <p className="text-[10px] font-black tracking-widest uppercase mb-1">Lebenslauf</p>
+                <p className="text-xs font-bold">{hasCv ? 'Verfügbar' : 'Nicht gefunden'}</p>
+              </button>
+              <button
+                onClick={() => hasLetter && setAttachments(p => ({ ...p, letter: !p.letter }))}
+                className={clsx(
+                  "flex-1 p-4 rounded-2xl border text-left transition-all",
+                  attachments.letter ? "bg-emerald-500/10 border-emerald-500 text-emerald-600" : "glass border-black/5 dark:border-white/5 text-gray-400",
+                  !hasLetter && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                <p className="text-[10px] font-black tracking-widest uppercase mb-1">Anschreiben</p>
+                <p className="text-xs font-bold">{hasLetter ? 'Verfügbar' : 'Nicht gefunden'}</p>
+              </button>
+            </div>
+          </div>
+
+          {/* Send Button */}
+          <button
+            onClick={handleSend}
+            className="w-full py-4 bg-emerald-600 text-white font-black text-[10px] tracking-widest rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 uppercase"
+          >
+            <Send size={16} />
+            E-Mail Programm öffnen
+          </button>
+        </div>
+      </div>
+
+      {/* Drag & Drop Zone (Visible after click or always if items selected) */}
+      {(isSent || attachments.cv || attachments.letter) && (
+        <div className="p-8 glass-card border-black/5 dark:border-white/5 rounded-[2.5rem] space-y-4">
+          <div className="flex items-center gap-3 text-emerald-600 mb-2">
+            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+              <FileDown size={20} />
+            </div>
+            <p className="text-xs font-black uppercase tracking-widest">Dateien zum Anhängen</p>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            Ziehe diese Dateien in dein geöffnetes E-Mail Fenster:
+          </p>
+
+          <div className="grid grid-cols-1 gap-3">
+            {attachments.cv && hasCv && (
+              <a
+                href={user?.user_metadata?.cv_url}
+                download
+                target="_blank"
+                className="flex items-center gap-4 p-4 glass bg-black/5 dark:bg-white/5 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-600 transition-all border border-transparent group/file"
+              >
+                <FileText size={20} />
+                <span className="font-bold text-sm">Lebenslauf.pdf</span>
+                <span className="ml-auto text-[10px] font-black uppercase tracking-widest opacity-0 group-hover/file:opacity-100 transition-opacity">Download</span>
+              </a>
+            )}
+            {attachments.letter && hasLetter && (
+              <a
+                href={user?.user_metadata?.letter_url}
+                download
+                target="_blank"
+                className="flex items-center gap-4 p-4 glass bg-black/5 dark:bg-white/5 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-600 transition-all border border-transparent group/file"
+              >
+                <FileText size={20} />
+                <span className="font-bold text-sm">Anschreiben.pdf</span>
+                <span className="ml-auto text-[10px] font-black uppercase tracking-widest opacity-0 group-hover/file:opacity-100 transition-opacity">Download</span>
+              </a>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
