@@ -14,6 +14,7 @@ import { useJobs } from '@/app/hooks/useJobs';
 import { EmailTemplate } from '../lib/data';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStorageUrl } from '@/app/hooks/useStorageUrl';
 
 export default function FilesPage() {
     const { templates, addTemplate, updateTemplate, deleteTemplate } = useJobs();
@@ -199,7 +200,7 @@ export default function FilesPage() {
                             fileName={documents.cvName}
                             lastUpdated={documents.cvLastUpdated}
                             onUpload={() => handleDocumentClick('cv')}
-                            onDownload={() => documents.cvUrl && window.open(documents.cvUrl)}
+                            fileUrl={documents.cvUrl}
                             isUploading={uploading && activeDocType === 'cv'}
                         />
                         <DocumentItem
@@ -207,7 +208,7 @@ export default function FilesPage() {
                             fileName={documents.letterName}
                             lastUpdated={documents.letterLastUpdated}
                             onUpload={() => handleDocumentClick('letter')}
-                            onDownload={() => documents.letterUrl && window.open(documents.letterUrl)}
+                            fileUrl={documents.letterUrl}
                             isUploading={uploading && activeDocType === 'letter'}
                         />
                     </div>
@@ -368,16 +369,17 @@ export default function FilesPage() {
     );
 }
 
-function DocumentItem({ title, fileName, lastUpdated, onUpload, onDownload, isUploading }: any) {
+function DocumentItem({ title, fileName, lastUpdated, onUpload, fileUrl, isUploading }: any) {
+    const { url: signedUrl, loading: resolving } = useStorageUrl(fileUrl, 'documents');
     return (
         <div className="p-8 glass border border-black/5 dark:border-white/5 rounded-[2.5rem] hover:border-blue-500/30 transition-all group/doc">
             <div className="flex items-start justify-between mb-6">
                 <div className="p-3 bg-blue-600/10 text-blue-600 rounded-xl group-hover/doc:bg-blue-600 group-hover/doc:text-white transition-all shadow-sm">
                     <FileText size={24} />
                 </div>
-                {fileName && (
-                    <button onClick={onDownload} className="p-2.5 text-gray-400 hover:text-blue-500 hover:bg-blue-500/5 rounded-xl transition-all">
-                        <Download size={20} />
+                {fileName && signedUrl && (
+                    <button onClick={() => window.open(signedUrl)} disabled={resolving} className="p-2.5 text-gray-400 hover:text-blue-500 hover:bg-blue-500/5 rounded-xl transition-all disabled:opacity-50">
+                        {resolving ? <Loader2 size={20} className="animate-spin" /> : <Download size={20} />}
                     </button>
                 )}
             </div>

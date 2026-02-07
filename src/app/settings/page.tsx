@@ -13,8 +13,74 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStorageUrl } from '@/app/hooks/useStorageUrl';
 
 type TabType = 'profile' | 'security' | 'notifications' | 'data';
+
+function ProfileSettings({ profile, setProfile, user, uploading, handleFileChange, handleUpdateProfile, saving }: any) {
+  const { url: signedAvatarUrl } = useStorageUrl(profile.avatarUrl, 'avatars');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleAvatarClick = () => fileInputRef.current?.click();
+
+  return (
+    <div className="space-y-10">
+      <Card title="Öffentliche Identität" icon={User}>
+        <form onSubmit={handleUpdateProfile} className="space-y-10">
+          <div className="flex items-center gap-8 group">
+            <div
+              onClick={handleAvatarClick}
+              className="relative h-28 w-28 rounded-[2.5rem] overflow-hidden cursor-pointer shadow-2xl transition-all hover:scale-105 active:scale-95 border-2 border-black/5 dark:border-white/10"
+            >
+              {signedAvatarUrl ? (
+                <img src={signedAvatarUrl} alt="Profil" className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center text-white font-black text-4xl uppercase">
+                  {user?.email?.slice(0, 2) || '??'}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
+                {uploading ? <Loader2 size={32} className="text-white animate-spin" /> : <Camera size={32} className="text-white" />}
+              </div>
+            </div>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+            <div>
+              <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Avatar Foto</h3>
+              <div className="flex gap-4 mt-2">
+                <button type="button" onClick={handleAvatarClick} className="text-xs font-black text-blue-500 tracking-widest hover:underline">Ändern</button>
+                {profile.avatarUrl && <button type="button" className="text-xs font-black text-red-500 tracking-widest hover:underline" onClick={() => setProfile({ ...profile, avatarUrl: '' })}>Löschen</button>}
+              </div>
+              <p className="text-[10px] text-gray-500 tracking-widest mt-2">Empfohlen: 400x400 JPG/PNG</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <SettingInput label="Anzeigename" value={profile.name} onChange={(v: string) => setProfile({ ...profile, name: v })} placeholder="Max Mustermann" />
+            <SettingInput label="Berufliche Rolle" value={profile.jobTitle} onChange={(v: string) => setProfile({ ...profile, jobTitle: v })} placeholder="Senior Entwickler" icon={Briefcase} />
+            <div className="space-y-3">
+              <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 tracking-widest uppercase">Arbeitspräferenz</label>
+              <select
+                value={profile.location}
+                onChange={e => setProfile({ ...profile, location: e.target.value })}
+                className="w-full glass border border-gray-200 dark:border-white/10 rounded-2xl p-4 text-sm font-bold bg-transparent text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              >
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="On-site">Vor Ort</option>
+              </select>
+            </div>
+            <SettingInput label="Link zum Lebenslauf" value={profile.resumeLink} onChange={(v: string) => setProfile({ ...profile, resumeLink: v })} placeholder="https://drive.google.com/..." icon={FileText} />
+          </div>
+
+          <div className="pt-8 border-t border-black/5 dark:border-white/5 flex justify-end">
+            <button type="submit" disabled={saving} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-2xl text-[10px] font-black tracking-widest shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
+              <Save size={18} /> {saving ? 'Verarbeitung...' : 'Änderungen speichern'}
+            </button>
+          </div>
+        </form>
+      </Card>
+    </div>
+  );
+}
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
@@ -24,7 +90,6 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState({
     name: '',
@@ -97,8 +162,6 @@ export default function SettingsPage() {
       setSaving(false);
     }
   };
-
-  const handleAvatarClick = () => fileInputRef.current?.click();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -231,62 +294,15 @@ export default function SettingsPage() {
               transition={{ duration: 0.3 }}
             >
               {activeTab === 'profile' && (
-                <div className="space-y-10">
-                  <Card title="Öffentliche Identität" icon={User}>
-                    <form onSubmit={handleUpdateProfile} className="space-y-10">
-                      <div className="flex items-center gap-8 group">
-                        <div
-                          onClick={handleAvatarClick}
-                          className="relative h-28 w-28 rounded-[2.5rem] overflow-hidden cursor-pointer shadow-2xl transition-all hover:scale-105 active:scale-95 border-2 border-black/5 dark:border-white/10"
-                        >
-                          {profile.avatarUrl ? (
-                            <img src={profile.avatarUrl} alt="Profil" className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center text-white font-black text-4xl uppercase">
-                              {user?.email?.slice(0, 2) || '??'}
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
-                            {uploading ? <Loader2 size={32} className="text-white animate-spin" /> : <Camera size={32} className="text-white" />}
-                          </div>
-                        </div>
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                        <div>
-                          <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Avatar Foto</h3>
-                          <div className="flex gap-4 mt-2">
-                            <button type="button" onClick={handleAvatarClick} className="text-xs font-black text-blue-500 tracking-widest hover:underline">Ändern</button>
-                            {profile.avatarUrl && <button type="button" className="text-xs font-black text-red-500 tracking-widest hover:underline" onClick={() => setProfile({ ...profile, avatarUrl: '' })}>Löschen</button>}
-                          </div>
-                          <p className="text-[10px] text-gray-500 tracking-widest mt-2">Empfohlen: 400x400 JPG/PNG</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <SettingInput label="Anzeigename" value={profile.name} onChange={(v: string) => setProfile({ ...profile, name: v })} placeholder="Max Mustermann" />
-                        <SettingInput label="Berufliche Rolle" value={profile.jobTitle} onChange={(v: string) => setProfile({ ...profile, jobTitle: v })} placeholder="Senior Entwickler" icon={Briefcase} />
-                        <div className="space-y-3">
-                          <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 tracking-widest uppercase">Arbeitspräferenz</label>
-                          <select
-                            value={profile.location}
-                            onChange={e => setProfile({ ...profile, location: e.target.value })}
-                            className="w-full glass border border-gray-200 dark:border-white/10 rounded-2xl p-4 text-sm font-bold bg-transparent text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                          >
-                            <option value="Remote">Remote</option>
-                            <option value="Hybrid">Hybrid</option>
-                            <option value="On-site">Vor Ort</option>
-                          </select>
-                        </div>
-                        <SettingInput label="Link zum Lebenslauf" value={profile.resumeLink} onChange={(v: string) => setProfile({ ...profile, resumeLink: v })} placeholder="https://drive.google.com/..." icon={FileText} />
-                      </div>
-
-                      <div className="pt-8 border-t border-black/5 dark:border-white/5 flex justify-end">
-                        <button type="submit" disabled={saving} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-2xl text-[10px] font-black tracking-widest shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
-                          <Save size={18} /> {saving ? 'Verarbeitung...' : 'Änderungen speichern'}
-                        </button>
-                      </div>
-                    </form>
-                  </Card>
-                </div>
+                <ProfileSettings
+                  profile={profile}
+                  setProfile={setProfile}
+                  user={user}
+                  uploading={uploading}
+                  handleFileChange={handleFileChange}
+                  handleUpdateProfile={handleUpdateProfile}
+                  saving={saving}
+                />
               )}
 
               {activeTab === 'security' && (

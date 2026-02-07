@@ -36,6 +36,7 @@ import { tailorDocument } from '@/app/actions/tailor-document';
 import { generatePDF } from '@/app/lib/pdf';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStorageUrl } from '@/app/hooks/useStorageUrl';
 import { Job, Status, EmailTemplate } from '@/app/lib/data';
 import KanbanBoard from '@/app/components/KanbanBoard';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -1021,6 +1022,9 @@ function SendTab({
 
   const [tailoredPdfUrl, setTailoredPdfUrl] = useState<string | null>(null);
 
+  const { url: signedMasterCvUrl } = useStorageUrl(user?.user_metadata?.cv_url, 'documents');
+  const { url: signedMasterLetterUrl } = useStorageUrl(user?.user_metadata?.letter_url, 'documents');
+
   // 1. Generate PDF Blob if tailored text exists
   // 1. Generate PDF Blob if tailored text exists
   useEffect(() => {
@@ -1215,7 +1219,7 @@ function SendTab({
           <div className="grid grid-cols-1 gap-3">
             {attachments.cv && hasCv && (
               <a
-                href={cvSource === 'tailored' ? (tailoredPdfUrl || '#') : (user?.user_metadata?.cv_url || '#')}
+                href={cvSource === 'tailored' ? (tailoredPdfUrl || '#') : (signedMasterCvUrl || '#')}
                 download={cvSource === 'tailored' ? 'Lebenslauf_Optimiert.pdf' : 'Lebenslauf.pdf'}
                 target="_blank"
                 className="flex items-center gap-4 p-4 glass bg-black/5 dark:bg-white/5 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-600 transition-all border border-transparent group/file"
@@ -1230,7 +1234,7 @@ function SendTab({
             )}
             {attachments.letter && hasLetter && (
               <a
-                href={letterSource === 'tailored' ? (tailoredPdfUrl || '#') : (user?.user_metadata?.letter_url || '#')}
+                href={letterSource === 'tailored' ? (tailoredPdfUrl || '#') : (signedMasterLetterUrl || '#')}
                 download={letterSource === 'tailored' ? 'Anschreiben_Optimiert.pdf' : 'Anschreiben.pdf'}
                 target="_blank"
                 className="flex items-center gap-4 p-4 glass bg-black/5 dark:bg-white/5 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-600 transition-all border border-transparent group/file"
