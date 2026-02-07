@@ -159,7 +159,7 @@ export default function CalendarPage() {
                         className="group/item"
                       >
                         <Link
-                          href={`/applications?status=${job.status}`}
+                          href={`/applications?jobId=${job.id}`}
                           className={clsx(
                             "block p-3 rounded-2xl text-[10px] font-black tracking-tight leading-tight transition-all active:scale-95 border",
                             job.status === 'Interview'

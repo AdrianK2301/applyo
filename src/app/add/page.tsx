@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Sparkles, Link as LinkIcon, CheckCircle2, Loader2, Building2, MapPin, Target, User, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useJobs } from '@/app/hooks/useJobs';
+import { EmploymentType } from '@/app/lib/data';
 import { analyzeJob } from '@/app/actions/analyze-job';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -35,7 +36,8 @@ export default function AddJobPage() {
     priority: 'Medium' as const,
     url: '',
     contactPerson: '',
-    contactInfo: ''
+    contactInfo: '',
+    employmentType: '' as EmploymentType | '',
   });
 
   const handleAnalyze = async () => {
@@ -65,6 +67,7 @@ export default function AddJobPage() {
           benefits: result.data.benefits || [],
           contactPerson: result.data.contact_person || '',
           contactInfo: result.data.contact_info || '',
+          employmentType: result.data.employmentType || '',
         });
         setStep(2);
       }
@@ -187,6 +190,22 @@ export default function AddJobPage() {
               <Input label="Standort / Ort" value={formData.location} onChange={(v: string) => setFormData({ ...formData, location: v })} placeholder="z.B. Berlin (Hybrid)" icon={MapPin} />
               <Input label="Ansprechpartner" value={formData.contactPerson} onChange={(v: string) => setFormData({ ...formData, contactPerson: v })} placeholder="z.B. Maria Musterfrau" icon={User} />
               <Input label="Kontaktinfo (E-Mail/Tel)" value={formData.contactInfo} onChange={(v: string) => setFormData({ ...formData, contactInfo: v })} placeholder="z.B. maria@company.com" icon={MessageSquare} />
+
+              <div className="col-span-1 space-y-3">
+                <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Anstellungsart</label>
+                <select
+                  className="w-full h-16 glass bg-transparent border border-gray-200 dark:border-white/10 rounded-2xl px-6 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-600/10 outline-none transition-all"
+                  value={formData.employmentType}
+                  onChange={e => setFormData({ ...formData, employmentType: e.target.value as EmploymentType })}
+                >
+                  <option value="" className="bg-slate-900">Nicht angegeben</option>
+                  <option value="Vollzeit" className="bg-slate-900">Vollzeit</option>
+                  <option value="Teilzeit" className="bg-slate-900">Teilzeit</option>
+                  <option value="Minijob" className="bg-slate-900">Minijob</option>
+                  <option value="Werkstudent" className="bg-slate-900">Werkstudent</option>
+                  <option value="Praktikum" className="bg-slate-900">Praktikum</option>
+                </select>
+              </div>
 
               <div className="col-span-2 space-y-3">
                 <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Zusammenfassung</label>

@@ -2,6 +2,7 @@
 
 export type Status = 'Merkliste' | 'In Arbeit' | 'Beworben' | 'Interview' | 'Angebot' | 'Absage' | 'Archiv';
 export type Priority = 'High' | 'Medium' | 'Low';
+export type EmploymentType = 'Vollzeit' | 'Teilzeit' | 'Minijob' | 'Werkstudent' | 'Praktikum';
 
 export interface Job {
   id: string;
@@ -24,6 +25,7 @@ export interface Job {
   skills?: string[];
   contactPerson?: string;
   contactInfo?: string;
+  employmentType?: EmploymentType;
 }
 
 export interface EmailTemplate {

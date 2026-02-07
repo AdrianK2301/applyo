@@ -100,7 +100,7 @@ export default function Dashboard() {
           <div className="bg-white/20 p-1 rounded-full">
             <Info size={12} className="text-white" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest">Über applyo</span>
+          <span className="text-[10px] font-black tracking-widest">Über applyo</span>
         </motion.button>
       </div>
 
@@ -114,7 +114,7 @@ export default function Dashboard() {
           color={hasApplicationsThisWeek ? 'green' : 'gray'}
           trend="+ diese Woche"
           trendColor={hasApplicationsThisWeek ? 'green' : 'gray'}
-          href="/applications"
+          href="/applications?filter=active"
         />
 
         <StatCard
@@ -124,7 +124,7 @@ export default function Dashboard() {
           color={nextInterviewTomorrow ? 'orange' : 'gray'}
           trend="Nächster: Morgen"
           trendColor={nextInterviewTomorrow ? 'orange' : 'gray'}
-          href="/calendar"
+          href="/applications?filter=upcoming"
         />
 
         <StatCard
@@ -134,7 +134,7 @@ export default function Dashboard() {
           color={hasUrgentFollowups ? 'red' : 'gray'}
           trend="Dringend erledigen"
           trendColor={hasUrgentFollowups ? 'red' : 'gray'}
-          href="/applications?status=Beworben"
+          href="/applications?filter=followup"
         />
 
       </div>

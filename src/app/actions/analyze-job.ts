@@ -82,6 +82,7 @@ export async function analyzeJob(url: string) {
       - skills (array of strings): List of specific technologies or hard skills mentioned (e.g., React, Python, English).
       - contact_person (string): Name of the recruiter or hiring manager if found
       - contact_info (string): Email or phone number of the contact person if found
+      - employmentType (string): One of 'Vollzeit', 'Teilzeit', 'Minijob', 'Werkstudent', 'Praktikum' (or null if not found)
       
       Text to analyze:
       ${text}

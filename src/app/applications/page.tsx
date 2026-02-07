@@ -1,8 +1,9 @@
 // src/app/applications/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useJobs } from '@/app/hooks/useJobs';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Search,
   Filter,
@@ -30,14 +31,19 @@ import {
   FileDown,
   Loader2,
   Send,
-  FileText
+  FileText,
+  MoreVertical,
+  SlidersHorizontal,
+  ArrowUpDown,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 import { tailorDocument } from '@/app/actions/tailor-document';
 import { generatePDF } from '@/app/lib/pdf';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStorageUrl } from '@/app/hooks/useStorageUrl';
-import { Job, Status, EmailTemplate } from '@/app/lib/data';
+import { Job, Status, EmailTemplate, EmploymentType } from '@/app/lib/data';
 import KanbanBoard from '@/app/components/KanbanBoard';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -47,6 +53,14 @@ type ViewType = 'list' | 'kanban';
 type Priority = 'High' | 'Medium' | 'Low';
 
 export default function ApplicationsPage() {
+  return (
+    <Suspense fallback={<div>Laden...</div>}>
+      <ApplicationsContent />
+    </Suspense>
+  );
+}
+
+function ApplicationsContent() {
   const { jobs, isLoaded, deleteJob, updateJob, templates, user } = useJobs();
   const [view, setView] = useState<ViewType>('list');
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,19 +76,60 @@ export default function ApplicationsPage() {
   const [sortedJobs, setSortedJobs] = useState<Job[]>([]);
   const [filterStatus, setFilterStatus] = useState<Status | 'All'>('All');
   const [filterPriority, setFilterPriority] = useState<Priority | 'All'>('All');
+  const [filterEmploymentType, setFilterEmploymentType] = useState<EmploymentType | 'All'>('All');
   const [sortConfig, setSortConfig] = useState<{ key: 'company' | 'status' | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) {
+        setIsFilterMenuOpen(false);
+      }
+    };
+
+    if (isFilterMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isFilterMenuOpen]);
 
 
   const [copiedTemplateId, setCopiedTemplateId] = useState<string | null>(null);
   const [expandedTemplateId, setExpandedTemplateId] = useState<string | null>(null);
+  const [newItemText, setNewItemText] = useState('');
+
+  const searchParams = useSearchParams();
+  const filterType = searchParams.get('filter');
+  const jobId = searchParams.get('jobId');
 
   useEffect(() => {
     let result = jobs.filter(job => {
       const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.company.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = filterStatus === 'All' || job.status === filterStatus;
-      const matchesPriority = filterPriority === 'All' || job.priority === filterPriority;
-      return matchesSearch && matchesStatus && matchesPriority;
+
+      let matchesFilter = true;
+
+      if (filterType === 'active') {
+        matchesFilter = ['Beworben', 'Interview'].includes(job.status);
+      } else if (filterType === 'followup') {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        matchesFilter = job.status === 'Beworben' && new Date(job.lastUpdate) < sevenDaysAgo;
+      } else if (filterType === 'upcoming') {
+        const now = new Date();
+        matchesFilter = job.status === 'Interview' || (!!job.interviewDate && new Date(job.interviewDate) >= now);
+      } else {
+        const matchesStatus = filterStatus === 'All' || job.status === filterStatus;
+        const matchesPriority = filterPriority === 'All' || job.priority === filterPriority;
+        const matchesEmploymentType = filterEmploymentType === 'All' || job.employmentType === filterEmploymentType;
+        matchesFilter = matchesStatus && matchesPriority && matchesEmploymentType;
+      }
+
+      return matchesSearch && matchesFilter;
     });
 
     if (sortConfig.key) {
@@ -97,7 +152,17 @@ export default function ApplicationsPage() {
     }
 
     setSortedJobs(result);
-  }, [jobs, searchQuery, filterStatus, filterPriority, sortConfig]);
+  }, [jobs, searchQuery, filterStatus, filterPriority, filterEmploymentType, sortConfig, filterType]);
+
+  // Handle opening job from URL
+  useEffect(() => {
+    if (isLoaded && jobId) {
+      const jobToOpen = jobs.find(j => j.id === jobId);
+      if (jobToOpen) {
+        handleOpenJob(jobToOpen);
+      }
+    }
+  }, [isLoaded, jobs, jobId]);
 
   const handleSort = (key: 'company' | 'status') => {
     setSortConfig(current => ({
@@ -112,6 +177,7 @@ export default function ApplicationsPage() {
     setIsDrawerOpen(true);
     setActiveTab('details');
     setIsEditing(false);
+    setNewItemText('');
   };
 
   const handleSaveEdit = async () => {
@@ -135,6 +201,25 @@ export default function ApplicationsPage() {
       completed: !updatedTasks[taskIndex].completed
     };
     const updatedJob = { ...job, prepTasks: updatedTasks };
+    setSelectedJob(updatedJob);
+    await updateJob(updatedJob);
+  };
+
+  const handleAddItem = async () => {
+    if (!newItemText.trim() || !selectedJob) return;
+
+    const updatedTasks = [...(selectedJob.prepTasks || []), { text: newItemText, completed: false }];
+    const updatedJob = { ...selectedJob, prepTasks: updatedTasks };
+
+    setSelectedJob(updatedJob);
+    await updateJob(updatedJob);
+    setNewItemText('');
+  };
+
+  const handleDeleteTask = async (taskIndex: number) => {
+    if (!selectedJob) return;
+    const updatedTasks = (selectedJob.prepTasks || []).filter((_, i) => i !== taskIndex);
+    const updatedJob = { ...selectedJob, prepTasks: updatedTasks };
     setSelectedJob(updatedJob);
     await updateJob(updatedJob);
   };
@@ -197,8 +282,8 @@ export default function ApplicationsPage() {
   const handleDownloadTailored = () => {
     if (!tailoredText || !selectedJob) return;
     const typeLabel = tailorDocType === 'cv' ? 'Lebenslauf' : 'Anschreiben';
-    const fileName = `${selectedJob.company}_${typeLabel}_Anpassung.pdf`;
-    generatePDF(`${typeLabel} für ${selectedJob.company}`, tailoredText, fileName);
+    const fileName = `${selectedJob.company}_${typeLabel} _Anpassung.pdf`;
+    generatePDF(`${typeLabel} für ${selectedJob.company} `, tailoredText, fileName);
   };
 
   const statusStyles: Record<Status, string> = {
@@ -219,6 +304,7 @@ export default function ApplicationsPage() {
 
   const statuses: Status[] = ['Merkliste', 'In Arbeit', 'Beworben', 'Interview', 'Angebot', 'Absage'];
   const priorities: Priority[] = ['High', 'Medium', 'Low'];
+  const employmentTypes: EmploymentType[] = ['Vollzeit', 'Teilzeit', 'Minijob', 'Werkstudent', 'Praktikum'];
 
   if (!isLoaded) return (
     <div className="flex items-center justify-center p-20 text-gray-400 font-medium font-mono text-sm tracking-widest uppercase">
@@ -247,29 +333,92 @@ export default function ApplicationsPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2">
-          <div className="relative group">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as Status | 'All')}
-              className="appearance-none h-16 pl-6 pr-10 glass-card rounded-[1.5rem] border border-white/10 text-xs font-black uppercase tracking-widest bg-transparent text-gray-500 dark:text-gray-400 focus:text-gray-900 dark:focus:text-white outline-none cursor-pointer hover:bg-white/5 transition-all"
-            >
-              <option value="All">Alle Status</option>
-              {statuses.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <Filter size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
-          <div className="relative group">
-            <select
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value as Priority | 'All')}
-              className="appearance-none h-16 pl-6 pr-10 glass-card rounded-[1.5rem] border border-white/10 text-xs font-black uppercase tracking-widest bg-transparent text-gray-500 dark:text-gray-400 focus:text-gray-900 dark:focus:text-white outline-none cursor-pointer hover:bg-white/5 transition-all"
-            >
-              <option value="All">Priorität</option>
-              {priorities.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-            <Filter size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
+        <div className="relative" ref={filterMenuRef}>
+          <button
+            onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+            className={clsx(
+              "h-16 w-16 flex items-center justify-center rounded-[1.5rem] border transition-all",
+              isFilterMenuOpen || filterStatus !== 'All' || filterPriority !== 'All' || filterEmploymentType !== 'All'
+                ? "bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-500/20"
+                : "glass-card border-white/10 text-gray-500 dark:text-gray-400 hover:bg-white/5"
+            )}
+          >
+            <Filter size={20} />
+          </button>
+
+          <AnimatePresence>
+            {isFilterMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute right-0 sm:left-0 sm:right-auto top-20 w-72 glass-card p-6 rounded-[2rem] border border-white/10 shadow-2xl z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl"
+              >
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-500">Filter</h3>
+                    {(filterStatus !== 'All' || filterPriority !== 'All' || filterEmploymentType !== 'All') && (
+                      <button
+                        onClick={() => {
+                          setFilterStatus('All');
+                          setFilterPriority('All');
+                          setFilterEmploymentType('All');
+                        }}
+                        className="text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        Zurücksetzen
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-400 ml-2">Status</label>
+                    <div className="relative group">
+                      <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value as Status | 'All')}
+                        className="w-full h-12 pl-4 pr-10 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-900 dark:text-white outline-none cursor-pointer hover:bg-gray-200 dark:hover:bg-white/10 transition-all appearance-none"
+                      >
+                        <option value="All" className="bg-white dark:bg-slate-900">Alle Status</option>
+                        {statuses.map(s => <option key={s} value={s} className="bg-white dark:bg-slate-900">{s}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-400 ml-2">Priorität</label>
+                    <div className="relative group">
+                      <select
+                        value={filterPriority}
+                        onChange={(e) => setFilterPriority(e.target.value as Priority | 'All')}
+                        className="w-full h-12 pl-4 pr-10 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-900 dark:text-white outline-none cursor-pointer hover:bg-gray-200 dark:hover:bg-white/10 transition-all appearance-none"
+                      >
+                        <option value="All" className="bg-white dark:bg-slate-900">Alle Prioritäten</option>
+                        {priorities.map(p => <option key={p} value={p} className="bg-white dark:bg-slate-900">{p}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-400 ml-2">Anstellungsart</label>
+                    <div className="relative group">
+                      <select
+                        value={filterEmploymentType}
+                        onChange={(e) => setFilterEmploymentType(e.target.value as EmploymentType | 'All')}
+                        className="w-full h-12 pl-4 pr-10 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-900 dark:text-white outline-none cursor-pointer hover:bg-gray-200 dark:hover:bg-white/10 transition-all appearance-none"
+                      >
+                        <option value="All" className="bg-white dark:bg-slate-900">Alle Arten</option>
+                        {employmentTypes.map(t => <option key={t} value={t} className="bg-white dark:bg-slate-900">{t}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="flex items-center gap-3 glass p-2 rounded-[1.5rem] border border-white/10 shrink-0">
@@ -489,7 +638,7 @@ export default function ApplicationsPage() {
                     activeTab === 'prep' ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-                  In Arbeit
+                  Checkliste
                 </button>
                 <button
                   onClick={() => {
@@ -501,7 +650,6 @@ export default function ApplicationsPage() {
                     activeTab === 'tailor' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
-                  <Sparkles size={14} />
                   KI-Anpassung
                 </button>
                 <button
@@ -532,6 +680,22 @@ export default function ApplicationsPage() {
                               className="w-full bg-black/5 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-lg px-2 py-1 text-black dark:text-white font-black text-[11px] focus:ring-1 focus:ring-blue-500 outline-none"
                             />
                           ) : selectedJob.location || 'Remote'}
+                        />
+                        <DetailCard
+                          icon={User}
+                          label="Anstellungsart"
+                          value={isEditing ? (
+                            <select
+                              value={editFormData.employmentType || ''}
+                              onChange={(e) => setEditFormData({ ...editFormData, employmentType: e.target.value as EmploymentType })}
+                              className="w-full bg-transparent border-none text-black dark:text-white font-black text-[11px] outline-none cursor-pointer appearance-none"
+                            >
+                              <option value="" className="bg-white dark:bg-slate-900">Nicht angegeben</option>
+                              {employmentTypes.map(t => (
+                                <option key={t} value={t} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">{t}</option>
+                              ))}
+                            </select>
+                          ) : selectedJob.employmentType || 'Nicht angegeben'}
                         />
                         <DetailCard
                           icon={Calendar}
@@ -817,7 +981,7 @@ export default function ApplicationsPage() {
                         <div className="absolute top-0 right-0 p-10 text-blue-500/10 group-hover:text-blue-500/20 transition-all">
                           <MessageSquare size={120} />
                         </div>
-                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight relative z-10">In Arbeit-Checklist</h4>
+                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight relative z-10">In Arbeit-Checkliste</h4>
                         <p className="text-[10px] text-blue-500 font-black tracking-widest mb-8 relative z-10">Bereite dich optimal vor</p>
 
                         <div className="space-y-4 relative z-10">
@@ -826,7 +990,7 @@ export default function ApplicationsPage() {
                               key={i}
                               onClick={() => toggleTask(selectedJob, i)}
                               className={clsx(
-                                "flex items-center gap-4 p-4 glass border-black/5 dark:border-white/5 rounded-2xl cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all",
+                                "flex items-center gap-4 p-4 glass border-black/5 dark:border-white/5 rounded-2xl cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all group",
                                 task.completed && "bg-blue-600/5 border-blue-500/20"
                               )}
                             >
@@ -842,8 +1006,40 @@ export default function ApplicationsPage() {
                               )}>
                                 {task.text}
                               </span>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (confirm('Eintrag löschen?')) {
+                                    handleDeleteTask(i);
+                                  }
+                                }}
+                                className="p-2 text-gray-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-rose-500/10"
+                                title="Löschen"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             </div>
                           ))}
+                        </div>
+
+                        {/* Add New Item */}
+                        <div className="mt-4 relative z-10 flex gap-2">
+                          <input
+                            type="text"
+                            value={newItemText}
+                            onChange={(e) => setNewItemText(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+                            placeholder="Neuen Punkt hinzufügen..."
+                            className="flex-1 px-4 py-3 glass bg-white/50 dark:bg-black/20 border-black/5 dark:border-white/10 rounded-xl text-xs font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 placeholder:text-gray-400"
+                          />
+                          <button
+                            onClick={handleAddItem}
+                            disabled={!newItemText.trim()}
+                            className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/20"
+                          >
+                            <Plus size={20} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1078,7 +1274,7 @@ function SendTab({
   const [showStatusConfirm, setShowStatusConfirm] = useState(false);
 
   const handleSend = () => {
-    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailtoLink = `mailto:? subject = ${encodeURIComponent(subject)}& body=${encodeURIComponent(body)} `;
     window.location.href = mailtoLink;
     setIsSent(true);
 
