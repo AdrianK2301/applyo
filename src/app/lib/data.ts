@@ -26,6 +26,7 @@ export interface Job {
   contactPerson?: string;
   contactInfo?: string;
   employmentType?: EmploymentType;
+  url?: string;
 }
 
 export interface EmailTemplate {

@@ -643,7 +643,7 @@ function ApplicationsContent() {
                 <button
                   onClick={() => {
                     setActiveTab('tailor');
-                    setTailoredText('');
+                    // Removed setTailoredText('') to persist generated content
                   }}
                   className={clsx(
                     "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center gap-2",
@@ -787,6 +787,23 @@ function ApplicationsContent() {
                               placeholder="E-Mail / Tel"
                             />
                           ) : selectedJob.contactInfo || 'Nicht angegeben'}
+                        />
+                        <DetailCard
+                          icon={ExternalLink}
+                          label="Original Link"
+                          value={isEditing ? (
+                            <input
+                              type="text"
+                              value={editFormData.url || ''}
+                              onChange={(e) => setEditFormData({ ...editFormData, url: e.target.value })}
+                              className="w-full bg-black/5 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-lg px-2 py-1 text-black dark:text-white font-black text-[11px] focus:ring-1 focus:ring-blue-500 outline-none"
+                              placeholder="https://..."
+                            />
+                          ) : selectedJob.url ? (
+                            <a href={selectedJob.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors truncate block flex items-center gap-1">
+                              Link öffnen <ExternalLink size={10} />
+                            </a>
+                          ) : 'Nicht angegeben'}
                         />
                       </div>
 
@@ -1429,19 +1446,52 @@ function SendTab({
               </a>
             )}
             {attachments.letter && hasLetter && (
-              <a
-                href={letterSource === 'tailored' ? (tailoredPdfUrl || '#') : (signedMasterLetterUrl || '#')}
-                download={letterSource === 'tailored' ? 'Anschreiben_Optimiert.pdf' : 'Anschreiben.pdf'}
-                target="_blank"
-                className="flex items-center gap-4 p-4 glass bg-black/5 dark:bg-white/5 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-600 transition-all border border-transparent group/file"
-              >
+              <div className="flex items-center gap-4 p-4 glass bg-black/5 dark:bg-white/5 rounded-2xl border border-transparent group/file w-full">
                 <FileText size={20} className={letterSource === 'tailored' ? 'text-indigo-500' : ''} />
-                <div className="flex flex-col">
-                  <span className="font-bold text-sm">Anschreiben.pdf</span>
-                  {letterSource === 'tailored' && <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">KI-Optimiert</span>}
+                <div className="flex flex-col mr-auto">
+                  <span className="font-bold text-sm">Anschreiben</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                    {letterSource === 'tailored' ? <span className="text-indigo-500">KI-Optimiert</span> : 'Master Version'}
+                  </span>
                 </div>
-                <span className="ml-auto text-[10px] font-black uppercase tracking-widest opacity-0 group-hover/file:opacity-100 transition-opacity">Download</span>
-              </a>
+
+                <div className="flex items-center gap-2">
+                  {/* Copy Button */}
+                  <button
+                    onClick={() => {
+                      const textToCopy = letterSource === 'tailored' ? tailoredText : user?.user_metadata?.letter_master_text;
+                      if (textToCopy) {
+                        navigator.clipboard.writeText(textToCopy);
+                        const btn = document.getElementById('btn-copy-action');
+                        if (btn) {
+                          const originalContent = btn.innerHTML;
+                          btn.innerHTML = '<span class="text-green-500"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>';
+                          setTimeout(() => { if (btn) btn.innerHTML = originalContent; }, 2000);
+                        }
+                      } else {
+                        alert('Kein Text zum Kopieren verfügbar.');
+                      }
+                    }}
+                    id="btn-copy-action"
+                    disabled={letterSource === 'master' && !user?.user_metadata?.letter_master_text}
+                    className="p-2.5 rounded-xl bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 text-gray-600 dark:text-gray-300 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Text kopieren"
+                  >
+                    <Copy size={16} />
+                  </button>
+
+                  {/* Download Button */}
+                  <a
+                    href={letterSource === 'tailored' ? (tailoredPdfUrl || '#') : (signedMasterLetterUrl || '#')}
+                    download={letterSource === 'tailored' ? 'Anschreiben_Optimiert.pdf' : 'Anschreiben.pdf'}
+                    target="_blank"
+                    className="p-2.5 rounded-xl bg-white/50 dark:bg-black/20 hover:bg-emerald-500 hover:text-white text-gray-600 dark:text-gray-300 transition-all"
+                    title="PDF Downloaden"
+                  >
+                    <FileDown size={16} />
+                  </a>
+                </div>
+              </div>
             )}
           </div>
         </div>
