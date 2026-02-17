@@ -112,7 +112,7 @@ export default function Dashboard() {
           label="Aktive Bewerbungen"
           value={activeJobs}
           color={hasApplicationsThisWeek ? 'green' : 'gray'}
-          trend="+ diese Woche"
+          trend={`+${activeJobsThisWeek} diese Woche`}
           trendColor={hasApplicationsThisWeek ? 'green' : 'gray'}
           href="/applications?filter=active"
         />
