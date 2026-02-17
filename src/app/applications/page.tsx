@@ -66,7 +66,7 @@ function ApplicationsContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'prep' | 'tailor' | 'send'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'prep' | 'tailor' | 'send' | 'feedback'>('details');
   const [isTailoring, setIsTailoring] = useState(false);
   const [tailorDocType, setTailorDocType] = useState<'cv' | 'letter'>('letter');
   const [tailoredText, setTailoredText] = useState('');
@@ -621,11 +621,11 @@ function ApplicationsContent() {
                 </button>
               </div>
 
-              <div className="flex gap-4 px-8 mt-6 bg-transparent">
+              <div className="flex gap-3 px-8 mt-6 bg-transparent overflow-x-auto no-scrollbar pb-2">
                 <button
                   onClick={() => setActiveTab('details')}
                   className={clsx(
-                    "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all",
+                    "px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all shrink-0",
                     activeTab === 'details' ? "bg-black/5 dark:bg-white/10 text-gray-900 dark:text-white shadow-lg shadow-black/5 dark:shadow-white/5" : "text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
@@ -634,7 +634,7 @@ function ApplicationsContent() {
                 <button
                   onClick={() => setActiveTab('prep')}
                   className={clsx(
-                    "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all",
+                    "px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all shrink-0",
                     activeTab === 'prep' ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
@@ -646,7 +646,7 @@ function ApplicationsContent() {
                     // Removed setTailoredText('') to persist generated content
                   }}
                   className={clsx(
-                    "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center gap-2",
+                    "px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center gap-2 shrink-0",
                     activeTab === 'tailor' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
@@ -655,12 +655,21 @@ function ApplicationsContent() {
                 <button
                   onClick={() => setActiveTab('send')}
                   className={clsx(
-                    "px-6 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center gap-2",
+                    "px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center gap-2 shrink-0",
                     activeTab === 'send' ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                   )}
                 >
                   <Send size={14} />
                   Senden
+                </button>
+                <button
+                  onClick={() => setActiveTab('feedback')}
+                  className={clsx(
+                    "px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all shrink-0",
+                    activeTab === 'feedback' ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  Rückmeldungen
                 </button>
               </div>
 
@@ -1140,6 +1149,155 @@ function ApplicationsContent() {
                         <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
                           Die KI nutzt deinen Master-Text aus den Einstellungen und optimiert ihn basierend auf den Anforderungen von <span className="text-blue-500 font-black">{selectedJob.company}</span>.
                         </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'feedback' && (
+                    <div className="space-y-8">
+                      {/* Header */}
+                      <div className="p-8 glass-card border-amber-500/20 bg-amber-600/5 rounded-[2.5rem] relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-10 text-amber-500/10 group-hover:text-amber-500/20 transition-all">
+                          <MessageSquare size={120} />
+                        </div>
+                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight relative z-10">Rückmeldungen & Notizen</h4>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-500 font-black tracking-widest mb-0 relative z-10">
+                          Erfasse Feedback vom Unternehmen und Gesprächsnotizen
+                        </p>
+                      </div>
+
+                      {/* General Feedback Textbox */}
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase ml-2">
+                          Allgemeines Feedback
+                        </label>
+                        <div className="glass-card p-6 rounded-[2rem] border-black/5 dark:border-white/5 bg-white/40 dark:bg-black/20 focus-within:ring-2 focus-within:ring-amber-500/20 transition-all">
+                          <textarea
+                            value={isEditing ? (editFormData?.feedbackGeneral || '') : (selectedJob.feedbackGeneral || '')}
+                            onChange={(e) => {
+                              if (isEditing && editFormData) {
+                                setEditFormData({ ...editFormData, feedbackGeneral: e.target.value });
+                              } else {
+                                // Direct update for UI responsiveness
+                                const updated = { ...selectedJob, feedbackGeneral: e.target.value };
+                                setSelectedJob(updated);
+                              }
+                            }}
+                            onBlur={async () => {
+                              if (!isEditing) {
+                                // Auto-save on blur
+                                await updateJob(selectedJob);
+                              }
+                            }}
+                            rows={6}
+                            // Always enabled
+                            className="w-full bg-transparent text-sm text-gray-700 dark:text-gray-300 leading-relaxed outline-none resize-none placeholder:text-gray-400"
+                            placeholder="Hier Feedback eintragen..."
+                          />
+                        </div>
+                      </div>
+
+                      {/* Dynamic Feedback Items */}
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase ml-2">
+                            Detail-Feedback
+                          </label>
+                          {/* Always visible Add Button */}
+                          <button
+                            onClick={async () => {
+                              const newItem = { id: crypto.randomUUID(), title: '', content: '' };
+
+                              if (isEditing && editFormData) {
+                                const newItems = [...(editFormData.feedbackItems || []), newItem];
+                                setEditFormData({ ...editFormData, feedbackItems: newItems });
+                              } else {
+                                const newItems = [...(selectedJob.feedbackItems || []), newItem];
+                                const updated = { ...selectedJob, feedbackItems: newItems };
+                                setSelectedJob(updated);
+                                await updateJob(updated);
+                              }
+                            }}
+                            className="text-[10px] font-black text-amber-600 hover:text-amber-700 flex items-center gap-1 bg-amber-500/10 px-3 py-1.5 rounded-lg hover:bg-amber-500/20 transition-all"
+                          >
+                            <Plus size={12} />
+                            Neues Feld
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6">
+                          {(isEditing ? (editFormData?.feedbackItems || []) : (selectedJob.feedbackItems || [])).map((item, index) => (
+                            <div key={item.id} className="glass-card p-6 rounded-[2rem] border-black/5 dark:border-white/5 bg-white/40 dark:bg-black/20 relative group">
+                              {/* Always visible Delete Button */}
+                              <button
+                                onClick={async () => {
+                                  if (isEditing && editFormData) {
+                                    const newItems = editFormData.feedbackItems?.filter(i => i.id !== item.id);
+                                    setEditFormData({ ...editFormData, feedbackItems: newItems });
+                                  } else {
+                                    const newItems = selectedJob.feedbackItems?.filter(i => i.id !== item.id);
+                                    const updated = { ...selectedJob, feedbackItems: newItems };
+                                    setSelectedJob(updated);
+                                    await updateJob(updated);
+                                  }
+                                }}
+                                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+
+                              <div className="mb-4 pr-10">
+                                <input
+                                  type="text"
+                                  value={item.title}
+                                  onChange={(e) => {
+                                    if (isEditing && editFormData && editFormData.feedbackItems) {
+                                      const newItems = [...editFormData.feedbackItems];
+                                      newItems[index] = { ...item, title: e.target.value };
+                                      setEditFormData({ ...editFormData, feedbackItems: newItems });
+                                    } else if (!isEditing && selectedJob.feedbackItems) {
+                                      const newItems = [...selectedJob.feedbackItems];
+                                      newItems[index] = { ...item, title: e.target.value };
+                                      setSelectedJob({ ...selectedJob, feedbackItems: newItems });
+                                    }
+                                  }}
+                                  onBlur={async () => {
+                                    if (!isEditing) await updateJob(selectedJob);
+                                  }}
+                                  className="w-full bg-transparent text-sm font-black text-gray-900 dark:text-white outline-none border-b border-transparent focus:border-amber-500/30 placeholder:text-gray-400 pb-1"
+                                  placeholder="Titel (z.B. Tech Interview)"
+                                />
+                              </div>
+
+                              <textarea
+                                value={item.content}
+                                onChange={(e) => {
+                                  if (isEditing && editFormData && editFormData.feedbackItems) {
+                                    const newItems = [...editFormData.feedbackItems];
+                                    newItems[index] = { ...item, content: e.target.value };
+                                    setEditFormData({ ...editFormData, feedbackItems: newItems });
+                                  } else if (!isEditing && selectedJob.feedbackItems) {
+                                    const newItems = [...selectedJob.feedbackItems];
+                                    newItems[index] = { ...item, content: e.target.value };
+                                    setSelectedJob({ ...selectedJob, feedbackItems: newItems });
+                                  }
+                                }}
+                                onBlur={async () => {
+                                  if (!isEditing) await updateJob(selectedJob);
+                                }}
+                                rows={4}
+                                className="w-full bg-transparent text-sm text-gray-700 dark:text-gray-300 leading-relaxed outline-none resize-none placeholder:text-gray-400"
+                                placeholder="Details eintragen..."
+                              />
+                            </div>
+                          ))}
+
+                          {!(isEditing ? (editFormData?.feedbackItems || []) : (selectedJob.feedbackItems || [])).length && (
+                            <div className="text-center py-10 text-gray-400 text-xs italic">
+                              Noch keine Detail-Einträge vorhanden.
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}

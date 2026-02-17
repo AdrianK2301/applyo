@@ -27,6 +27,8 @@ export interface Job {
   contactInfo?: string;
   employmentType?: EmploymentType;
   url?: string;
+  feedbackGeneral?: string;
+  feedbackItems?: { id: string; title: string; content: string }[];
 }
 
 export interface EmailTemplate {

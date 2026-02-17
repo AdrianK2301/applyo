@@ -78,7 +78,9 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                     interviewDate: item.interview_date,
                     contactInfo: item.contact_info,
                     employmentType: item.employment_type,
-                    url: item.url
+                    url: item.url,
+                    feedbackGeneral: item.feedback_general,
+                    feedbackItems: item.feedback_items || []
                 };
             });
             setJobs(mappedJobs);
@@ -147,6 +149,8 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                 contact_info: newJob.contactInfo,
                 employment_type: newJob.employmentType,
                 url: newJob.url,
+                feedback_general: newJob.feedbackGeneral,
+                feedback_items: newJob.feedbackItems,
                 last_update: new Date().toISOString().split('T')[0]
             }])
             .select()
@@ -184,6 +188,8 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                 contact_info: updatedJob.contactInfo,
                 employment_type: updatedJob.employmentType,
                 url: updatedJob.url,
+                feedback_general: updatedJob.feedbackGeneral,
+                feedback_items: updatedJob.feedbackItems,
                 last_update: new Date().toISOString().split('T')[0]
             })
             .eq('id', updatedJob.id);
