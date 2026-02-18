@@ -9,8 +9,8 @@ import { User } from '@supabase/supabase-js';
 interface JobsContextType {
     jobs: Job[];
     templates: EmailTemplate[];
-    addJob: (newJob: Omit<Job, 'id' | 'lastUpdate'>) => Promise<void>;
-    updateJob: (updatedJob: Job) => Promise<void>;
+    addJob: (newJob: Omit<Job, 'id' | 'lastUpdate'>) => Promise<{ success: boolean; error?: any }>;
+    updateJob: (updatedJob: Job) => Promise<{ success: boolean; error?: any }>;
     deleteJob: (id: string) => Promise<void>;
     archiveJob: (id: string) => Promise<void>;
     restoreJob: (id: string) => Promise<void>;
@@ -72,8 +72,10 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                     prepTasks: prepTasks,
                     contactPerson: item.contact_person,
                     description: item.description,
+                    summary: item.summary,
                     requirements: item.requirements,
                     benefits: item.benefits,
+                    tasks: item.tasks,
                     skills: item.skills,
                     interviewDate: item.interview_date,
                     contactInfo: item.contact_info,
@@ -124,7 +126,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     }, [supabase.auth, fetchJobs, fetchTemplates]);
 
     const addJob = async (newJob: Omit<Job, 'id' | 'lastUpdate'>) => {
-        if (!user) return;
+        if (!user) return { success: false, error: 'User not authenticated' };
 
         const { data, error } = await supabase
             .from('jobs')
@@ -144,6 +146,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                 summary: newJob.summary,
                 requirements: newJob.requirements,
                 benefits: newJob.benefits,
+                tasks: newJob.tasks,
                 skills: newJob.skills,
                 interview_date: newJob.interviewDate,
                 contact_info: newJob.contactInfo,
@@ -157,14 +160,16 @@ export function JobsProvider({ children }: { children: ReactNode }) {
             .single();
 
         if (error) {
-            console.error('Error adding job:', error);
-        } else if (data) {
-            fetchJobs();
+            console.error('Error adding job (full):', JSON.stringify(error, null, 2));
+            return { success: false, error };
+        } else {
+            await fetchJobs();
+            return { success: true };
         }
     };
 
     const updateJob = async (updatedJob: Job) => {
-        if (!user) return;
+        if (!user) return { success: false, error: 'User not authenticated' };
 
         const { error } = await supabase
             .from('jobs')
@@ -183,6 +188,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
                 summary: updatedJob.summary,
                 requirements: updatedJob.requirements,
                 benefits: updatedJob.benefits,
+                tasks: updatedJob.tasks,
                 skills: updatedJob.skills,
                 interview_date: updatedJob.interviewDate,
                 contact_info: updatedJob.contactInfo,
@@ -196,8 +202,10 @@ export function JobsProvider({ children }: { children: ReactNode }) {
 
         if (error) {
             console.error('Error updating job:', error);
+            return { success: false, error };
         } else {
-            fetchJobs();
+            await fetchJobs();
+            return { success: true };
         }
     };
 

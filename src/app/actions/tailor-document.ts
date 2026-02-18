@@ -11,7 +11,7 @@ export async function tailorDocument(job: Job, documentType: 'cv' | 'letter', ma
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const docName = documentType === 'cv' ? 'Lebenslauf' : 'Anschreiben';
 

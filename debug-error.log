@@ -1,0 +1,52 @@
+2026-02-18T14:25:11.961Z - AI Error: AI generation timed out after 4s
+2026-02-18T14:26:04.528Z - AI Error: AI generation timed out after 4s
+2026-02-18T14:26:21.533Z - AI Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: fetch failed
+2026-02-18T14:27:16.757Z - AI Error: AI generation timed out after 4s
+2026-02-18T14:27:41.343Z - AI Error: AI generation timed out after 4s
+2026-02-18T14:29:35.507Z - AI Error: AI generation timed out after 4s
+2026-02-18T14:54:53.153Z - AI Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-02-18T15:11:08.277Z - AI Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [404 Not Found] models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-02-18T15:15:40.308Z - AI Error: Failed to parse JSON response: {
+    "title": "Junior Account Manager (m/f/d)",
+    "company": "Pacific Entertainment Media GmbH",
+    "location": "München",
+    "contact_person": null,
+    "contact_info": null,
+    "employmentType": "Vollzeit",
+    "description": "Pacific Entertainment Media GmbH is a fast-growing company seeking like-minded individuals to join their international team. They are looking for proactive people who want to contribute to an evolving work environment and help shake things up.",
+    "summary": "Pacific Entertainment Media GmbH is hiring a full-time Junior Account Manager for their international team, based in Munich or Berlin. The role involves supporting project execution, client engagement, and event organization, suitable for a proactive individual with a passion for project delivery and a can-do attitude.",
+    "requirements": [
+        "Bachelor’s degree in marketing or communication, OR one year of experience in an event agency, marketing agency, or dynamic client environment.",
+        "Very familiar with Microsoft 365 Office tools and/or other operative/creative tools like Miro, Notion, etc.",
+        "Passion for project delivery and processes.",
+        "Can-Do attitude and ability to juggle several tasks at once.",
+        "Curious and eager to learn new things.",
+        "Very good written and spoken German and English skills."
+     homozygote"
+    ],
+    "benefits": [
+        "Great team of fun-loving, caring, and incredibly smart people with flat hierarchies and an open communication culture.",
+        "Fast-paced and ever-evolving work environment with exciting international projects (check out Instagram: @ueg.emea).",
+        "Flexible hybrid working setup (home office and on-site work) with a pet- and people-friendly office.",
+        "Competitive benefit packages (Workation, Urban Sports, Jobrad etc.).",
+        "Employer committed to equal opportunities and empowering employees.",
+        "Estimated salary: 40,500 € – 55,000 €."
+    ],
+    "tasks": [
+        "Perform research on specific topics, schedule meetings, and write project briefs.",
+        "Maintain various project lists and handle travel bookings.",
+        "Calculate budgets for smaller projects and assist with project execution, demonstrating a willingness to learn how to run projects successfully.",
+        "Observe current trends in the social and real universe.",
+        "Support the team in planning, organizing, and delivering events/projects from A to Z.",
+        "Present findings or project plans.",
+        "Engage with clients and other agency partners.",
+        "Live the agency culture."
+    ],
+    "skills": [
+        "Microsoft 365 Office tools",
+        "Miro",
+        "Notion",
+        "German",
+        "English"
+    ]
+}

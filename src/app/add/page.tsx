@@ -40,54 +40,71 @@ export default function AddJobPage() {
     employmentType: '' as EmploymentType | '',
   });
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleAnalyze = async () => {
     if (!url) return;
     setIsLoading(true);
     setError('');
 
     try {
+      // Fetch all info at once (Slower initial wait, but complete)
       const result = await analyzeJob(url);
 
       if (result?.error) {
         setError(result.error);
+        setIsLoading(false);
         return;
       }
 
       if (result?.data) {
-        setFormData({
+        const jobData = {
           ...formData,
           url: url,
           title: result.data.title || '',
           company: result.data.company || '',
           location: result.data.location || '',
+          contactPerson: result.data.contact_person || '',
+          contactInfo: result.data.contact_info || '',
+          employmentType: result.data.employmentType || '',
           description: result.data.description || '',
           summary: result.data.summary || '',
           tasks: result.data.tasks || [],
           requirements: result.data.requirements || [],
           benefits: result.data.benefits || [],
-          contactPerson: result.data.contact_person || '',
-          contactInfo: result.data.contact_info || '',
-          employmentType: result.data.employmentType || '',
-        });
+        };
+        setFormData(jobData);
         setStep(2);
+        setIsLoading(false);
       }
     } catch (err) {
       setError('Ein unerwarteter Fehler ist aufgetreten.');
       console.error(err);
-    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newJob: any = {
-      id: Date.now().toString(),
-      ...formData,
-      lastUpdate: new Date().toISOString().split('T')[0],
-    };
-    addJob(newJob);
-    router.push('/applications');
+    setIsSaving(true);
+    setError('');
+
+    try {
+      const response = await addJob({
+        ...formData,
+        employmentType: formData.employmentType === '' ? undefined : formData.employmentType
+      });
+      if (response.success) {
+        router.push('/applications');
+      } else {
+        setError('Fehler beim Speichern des Jobs. Bitte versuche es erneut.');
+        setIsSaving(false);
+      }
+    } catch (err) {
+      setError('Ein unerwarteter Fehler ist aufgetreten beim Speichern.');
+      console.error(err);
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -276,8 +293,12 @@ export default function AddJobPage() {
             </div>
 
             <div className="pt-10 border-t border-white/5 flex flex-col sm:flex-row gap-6">
-              <button type="submit" className="flex-1 h-18 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all">
-                Job speichern
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="flex-1 h-18 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                {isSaving ? <Loader2 className="animate-spin" size={20} /> : 'Job speichern'}
               </button>
               <button type="button" onClick={() => router.back()} className="h-18 px-10 glass text-gray-400 hover:text-white hover:bg-white/10 border border-white/10 rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] transition-all">
                 Abbrechen
