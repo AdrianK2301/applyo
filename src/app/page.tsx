@@ -153,8 +153,13 @@ export default function Dashboard() {
             {(() => {
               // Priority logic for next steps
               const now = new Date();
-              const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-              const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+              now.setHours(0, 0, 0, 0); // Normalize to midnight for accurate date comparison
+
+              const threeDaysFromNow = new Date(now);
+              threeDaysFromNow.setDate(now.getDate() + 3);
+
+              const sevenDaysAgo = new Date(now);
+              sevenDaysAgo.setDate(now.getDate() - 7);
 
               const nextSteps: Array<{
                 job: Job;
@@ -168,6 +173,8 @@ export default function Dashboard() {
                 // 1. Urgent interviews (within next 3 days) - Highest priority
                 if (job.status === 'Interview' && job.interviewDate) {
                   const interviewDate = new Date(job.interviewDate);
+                  interviewDate.setHours(0, 0, 0, 0);
+
                   if (interviewDate <= threeDaysFromNow && interviewDate >= now) {
                     const daysUntil = Math.ceil((interviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
                     nextSteps.push({
@@ -183,6 +190,8 @@ export default function Dashboard() {
                 // 2. Overdue follow-ups (7+ days old in "Beworben")
                 if (job.status === 'Beworben') {
                   const lastUpdateDate = new Date(job.lastUpdate);
+                  lastUpdateDate.setHours(0, 0, 0, 0);
+
                   if (lastUpdateDate < sevenDaysAgo) {
                     const daysAgo = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24));
                     nextSteps.push({
@@ -198,6 +207,8 @@ export default function Dashboard() {
                 // 3. Jobs "In Arbeit" (need to be submitted)
                 if (job.status === 'In Arbeit') {
                   const lastUpdateDate = new Date(job.lastUpdate);
+                  lastUpdateDate.setHours(0, 0, 0, 0);
+
                   const daysInProgress = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24));
                   nextSteps.push({
                     job,
@@ -211,6 +222,8 @@ export default function Dashboard() {
                 // 4. Oldest "Merkliste" items (to keep momentum)
                 if (job.status === 'Merkliste') {
                   const lastUpdateDate = new Date(job.lastUpdate);
+                  lastUpdateDate.setHours(0, 0, 0, 0);
+
                   const daysOld = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24));
                   if (daysOld > 3) {
                     nextSteps.push({
@@ -224,9 +237,15 @@ export default function Dashboard() {
                 }
               });
 
-              // Sort by priority and take top 3
+              // Sort by priority first, then by lastUpdate (newest first) for consistent ordering
               const topSteps = nextSteps
-                .sort((a, b) => a.priority - b.priority)
+                .sort((a, b) => {
+                  if (a.priority !== b.priority) {
+                    return a.priority - b.priority;
+                  }
+                  // If priority is same, show most recently updated first
+                  return new Date(b.job.lastUpdate).getTime() - new Date(a.job.lastUpdate).getTime();
+                })
                 .slice(0, 3);
 
               return topSteps.length > 0 ? topSteps.map((step, index) => (
